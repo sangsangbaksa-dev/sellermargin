@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>셀러마진 · 온라인 셀러 마진·광고 손익분기 계산기</title>
+  <meta name="description" content="스마트스토어·쿠팡·11번가·자사몰 수수료, 부가세, 반품, 광고비를 넣으면 상품별 순마진과 손익분기 ROAS를 바로 계산합니다. 데이터는 브라우저에만 저장됩니다.">
+  <meta name="theme-color" content="#EA580C">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="셀러마진">
+  <meta property="og:title" content="셀러마진 · 상품별 순마진과 손익분기 ROAS 계산기">
+  <meta property="og:description" content="수수료·부가세·반품·광고비를 넣으면 상품별 진짜 마진과 광고비 한계를 보여줍니다.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23EA580C'/%3E%3Ctext x='16' y='23' font-size='19' font-weight='700' text-anchor='middle' fill='%231C1917' font-family='Georgia,serif'%3E%25%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#calc">계산기로 바로가기</a>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top" aria-label="셀러마진 홈">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><text x="16" y="23" font-size="19" font-weight="700" text-anchor="middle" fill="#1C1917" font-family="Georgia, serif">%</text></svg>
+        <span>셀러마진</span>
+      </a>
+      <nav class="topnav" aria-label="주요 메뉴">
+        <a href="#features">기능</a>
+        <a href="#how">사용법</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-primary btn-sm" href="#calc">계산 시작</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">스마트스토어 · 쿠팡 · 11번가 · 자사몰</p>
+        <h1>수수료와 광고비를 빼고 나면, 상품마다 남는 돈</h1>
+        <p class="lead">판매가 하나에 채널 수수료, 부가세, 반품, 광고비를 함께 넣어 순마진과 손익분기 ROAS를 바로 확인하세요. 적자 상품은 빨간색으로 먼저 보여줍니다.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#calc">내 상품 계산하기</a>
+          <button class="btn btn-ghost" type="button" id="btn-sample-hero">예시 상품으로 둘러보기</button>
+        </div>
+        <p class="hero-note">수수료 값은 예시이므로 실제 정책을 직접 확인해 수정하세요. 계산 결과는 참고용입니다.</p>
+      </div>
+    </section>
+
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <p class="eyebrow">기능</p>
+        <h2 id="features-title">광고를 켜기 전에 계산부터</h2>
+        <div class="card-grid">
+          <article class="card">
+            <h3>진짜 순마진</h3>
+            <p>판매 수수료, 결제 수수료, 고정 수수료, 원가, 포장비, 배송비 부담액을 모두 빼서 1개 팔 때 실제로 남는 돈을 보여줍니다.</p>
+          </article>
+          <article class="card">
+            <h3>손익분기 ROAS</h3>
+            <p>광고비를 얼마까지 쓰면 0원이 되는지, 그때의 ROAS가 몇 배인지 계산합니다. 목표 ROAS가 이 값보다 낮으면 광고가 손해입니다.</p>
+          </article>
+          <article class="card">
+            <h3>채널 비교와 역산</h3>
+            <p>같은 상품을 채널별로 나란히 비교하고, 목표 마진율을 맞추려면 판매가를 얼마로 해야 하는지 역산합니다.</p>
+          </article>
+          <article class="card">
+            <h3>월 손익 한눈에</h3>
+            <p>월 판매량을 넣으면 월 예상 순이익과 광고비 총액을 보여주고, 적자 판매 중인 상품을 따로 세어 알려줍니다.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <p class="eyebrow">사용법</p>
+        <h2 id="how-title">3단계면 충분합니다</h2>
+        <ol class="steps">
+          <li><span class="step-no">1</span><div><h3>채널 수수료 확인</h3><p>예시 수수료가 들어 있습니다. 채널 정책을 확인해 수수료와 부가세 처리 방식을 맞추세요.</p></div></li>
+          <li><span class="step-no">2</span><div><h3>상품 입력 또는 CSV 가져오기</h3><p>상품을 하나씩 입력하거나 CSV를 붙여넣으세요. 잘못된 행은 줄 번호와 함께 알려줍니다.</p></div></li>
+          <li><span class="step-no">3</span><div><h3>적자와 광고 한계 확인</h3><p>상태 표시(적자·위험·양호), 손익분기 광고비, 목표 가격을 보고 판매가와 광고비를 조정하세요.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="calc" aria-labelledby="calc-title">
+      <div class="wrap">
+        <p class="eyebrow">계산기</p>
+        <h2 id="calc-title">상품별 마진 계산</h2>
+        <p class="disclaimer" role="note">계산 결과는 참고용 추정치이며 세무·법률·재무 자문이 아닙니다. 수수료와 세율은 바뀔 수 있으니 채널 정책과 세무 기준을 직접 확인하세요.</p>
+        <p class="basis" id="basis-line"></p>
+
+        <div class="panel" id="panel-dash" aria-labelledby="dash-title">
+          <div class="panel-head">
+            <h3 id="dash-title">요약</h3>
+            <div class="inline-actions">
+              <label class="inline-field">목표 마진율 (%)
+                <input id="target-margin" type="text" inputmode="decimal" value="15" autocomplete="off" aria-describedby="target-err">
+              </label>
+              <button class="btn btn-ghost btn-sm" type="button" id="btn-target-save">적용</button>
+            </div>
+          </div>
+          <p class="field-error" id="target-err" role="alert"></p>
+          <dl class="kpis" id="kpis"></dl>
+          <div id="warnings" class="warnings" aria-live="polite"></div>
+          <div id="worst-wrap" hidden>
+            <h4>순마진이 가장 낮은 상품 5개</h4>
+            <ol class="worst-list" id="worst-list"></ol>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-products" aria-labelledby="products-title">
+          <div class="panel-head">
+            <h3 id="products-title">상품 목록</h3>
+            <div class="inline-actions">
+              <button class="btn btn-ghost btn-sm" type="button" id="btn-sample">예시 상품 불러오기</button>
+            </div>
+          </div>
+
+          <form id="product-form" class="form-grid" novalidate aria-labelledby="form-title">
+            <h4 id="form-title" class="form-title">상품 추가</h4>
+            <input type="hidden" id="pf-id">
+            <label class="field">상품명 <span class="req" aria-hidden="true">*</span>
+              <input id="pf-name" name="name" maxlength="80" autocomplete="off" required></label>
+            <label class="field">SKU
+              <input id="pf-sku" name="sku" maxlength="40" autocomplete="off"></label>
+            <label class="field">채널
+              <select id="pf-channel" name="channelId"></select></label>
+            <label class="field">판매가 (원) <span class="req" aria-hidden="true">*</span>
+              <input id="pf-price" name="price" inputmode="numeric" autocomplete="off" required></label>
+            <label class="field">원가 (원, 부가세 제외)
+              <input id="pf-cogs" name="cogs" inputmode="numeric" autocomplete="off"></label>
+            <label class="field">포장비 (원)
+              <input id="pf-packaging" name="packaging" inputmode="numeric" autocomplete="off"></label>
+            <label class="field">배송비 부담액 (원)
+              <input id="pf-shipping" name="shipping" inputmode="numeric" autocomplete="off"></label>
+            <label class="field">반품률 (%)
+              <input id="pf-returnRate" name="returnRate" inputmode="decimal" autocomplete="off"></label>
+            <label class="field">반품 1건당 추가 손실 (원)
+              <input id="pf-returnLoss" name="returnLoss" inputmode="numeric" autocomplete="off"></label>
+            <fieldset class="field field-wide">
+              <legend>광고비 입력 방식</legend>
+              <label class="radio"><input type="radio" name="adMode" value="perOrder" checked> 주문당 광고비 (원)</label>
+              <label class="radio"><input type="radio" name="adMode" value="roas"> 목표 ROAS (배)</label>
+            </fieldset>
+            <label class="field" id="wrap-adPerOrder">주문당 광고비 (원)
+              <input id="pf-adPerOrder" name="adPerOrder" inputmode="numeric" autocomplete="off"></label>
+            <label class="field" id="wrap-roasTarget" hidden>목표 ROAS (배)
+              <input id="pf-roasTarget" name="roasTarget" inputmode="decimal" autocomplete="off"></label>
+            <label class="field">월 판매량 (개)
+              <input id="pf-volume" name="volume" inputmode="numeric" autocomplete="off"></label>
+            <div class="form-actions field-wide">
+              <button class="btn btn-primary" type="submit" id="pf-submit">상품 저장</button>
+              <button class="btn btn-ghost" type="button" id="pf-cancel" hidden>수정 취소</button>
+              <p class="form-msg" id="pf-msg" role="status" aria-live="polite"></p>
+            </div>
+            <div class="field-wide form-errors" id="pf-errors" role="alert"></div>
+          </form>
+
+          <div class="toolbar">
+            <label class="search">상품 검색
+              <input id="filter-text" type="search" placeholder="상품명 또는 SKU" autocomplete="off"></label>
+            <label class="check"><input type="checkbox" id="filter-loss"> 적자만 보기</label>
+          </div>
+          <div class="table-wrap" tabindex="0" aria-label="상품 표 (가로 스크롤 가능)">
+            <table class="data" id="product-table">
+              <caption class="sr-only">상품별 순마진 계산 결과. 열 머리글 버튼으로 정렬합니다.</caption>
+              <thead>
+                <tr>
+                  <th scope="col"><button type="button" class="sort" data-sort="name">상품</button></th>
+                  <th scope="col" class="hide-sm">채널</th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="price">판매가</button></th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="net">순마진</button></th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="margin">마진율</button></th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="bepRoas">손익분기 ROAS</button></th>
+                  <th scope="col">상태</th>
+                  <th scope="col"><span class="sr-only">작업</span></th>
+                </tr>
+              </thead>
+              <tbody id="product-body"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="product-empty" hidden>아직 상품이 없습니다. 위 양식으로 추가하거나 예시 상품을 불러오세요.</p>
+        </div>
+
+        <div class="panel" id="panel-detail" aria-labelledby="detail-title" hidden>
+          <div class="panel-head">
+            <h3 id="detail-title">상품 상세</h3>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-detail-close">닫기</button>
+          </div>
+          <div id="detail-body"></div>
+        </div>
+
+        <div class="panel" id="panel-channels" aria-labelledby="channels-title">
+          <div class="panel-head">
+            <h3 id="channels-title">채널 수수료</h3>
+          </div>
+          <p class="basis">예시 수수료 · 직접 확인 필요 · 기준일 2026-11 (공식 요율이 아닙니다)</p>
+          <div class="table-wrap" tabindex="0">
+            <table class="data">
+              <caption class="sr-only">채널별 수수료 설정. 값을 바꾸고 저장을 누르세요.</caption>
+              <thead><tr>
+                <th scope="col">채널</th><th scope="col" class="num">판매 수수료 %</th><th scope="col" class="num">결제/PG %</th>
+                <th scope="col" class="num">고정 수수료 (원/주문)</th><th scope="col">부가세 분리</th><th scope="col"><span class="sr-only">작업</span></th>
+              </tr></thead>
+              <tbody id="channel-body"></tbody>
+            </table>
+          </div>
+          <form id="channel-form" class="form-grid compact" novalidate>
+            <h4 class="form-title">채널 추가</h4>
+            <label class="field">채널 이름 <input id="cf-name" maxlength="40" autocomplete="off"></label>
+            <label class="field">판매 수수료 (%) <input id="cf-sale" inputmode="decimal" autocomplete="off"></label>
+            <label class="field">결제/PG 수수료 (%) <input id="cf-pg" inputmode="decimal" autocomplete="off"></label>
+            <label class="field">고정 수수료 (원/주문) <input id="cf-fixed" inputmode="numeric" autocomplete="off"></label>
+            <label class="check field-wide"><input type="checkbox" id="cf-vat" checked> 부가세 분리 (판매가에서 10% 부가세를 떼고 계산)</label>
+            <div class="form-actions field-wide">
+              <button class="btn btn-primary" type="submit">채널 추가</button>
+              <button class="btn btn-ghost" type="button" id="btn-channel-reset">예시 수수료로 되돌리기</button>
+              <p class="form-msg" id="cf-msg" role="status" aria-live="polite"></p>
+            </div>
+            <div class="field-wide form-errors" id="cf-errors" role="alert"></div>
+          </form>
+        </div>
+
+        <div class="panel" id="panel-csv" aria-labelledby="csv-title">
+          <div class="panel-head">
+            <h3 id="csv-title">CSV 가져오기 · 내보내기</h3>
+            <div class="inline-actions">
+              <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-template">양식 내려받기</button>
+            </div>
+          </div>
+          <p class="basis">필수 열: 상품명, 판매가. 선택 열: SKU, 채널, 원가, 포장비, 배송비부담액, 반품률, 반품손실, 광고비 또는 목표ROAS, 월판매량. 채널은 이름이나 id로 적으며 비우면 첫 번째 채널을 씁니다.</p>
+          <label class="field field-wide">CSV 붙여넣기
+            <textarea id="csv-text" rows="5" spellcheck="false" placeholder="상품명,SKU,채널,판매가,원가&#10;무선 충전 케이블,CBL-1M,스마트스토어,9900,2800"></textarea>
+          </label>
+          <div class="inline-actions">
+            <label class="file-btn">파일 선택 (.csv)
+              <input type="file" id="csv-file" accept=".csv,text/csv">
+            </label>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-preview">미리보기 검사</button>
+            <button class="btn btn-primary btn-sm" type="button" id="btn-csv-import" disabled>검사 통과 행 추가</button>
+          </div>
+          <p class="form-msg" id="csv-msg" role="status" aria-live="polite"></p>
+          <div id="csv-errors"></div>
+          <div class="inline-actions">
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-export-products">상품 CSV 내보내기</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-export-results">계산 결과 CSV 내보내기</button>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-ai" aria-labelledby="ai-title">
+          <div class="panel-head">
+            <h3 id="ai-title">AI 개선안</h3>
+            <span class="badge">선택 기능</span>
+          </div>
+          <p class="basis">순마진이 가장 낮은 상품 5개의 <strong>숫자 요약</strong>만 보냅니다. 상품명과 SKU는 기본으로 보내지 않습니다. 버튼을 누를 때만 전송합니다.</p>
+          <form id="ai-key-form" class="form-grid compact" novalidate>
+            <label class="field field-wide">내 Anthropic API 키
+              <input id="ai-key" type="password" autocomplete="off" spellcheck="false" aria-describedby="ai-key-note">
+            </label>
+            <p class="field-wide small" id="ai-key-note">브라우저의 localStorage에 저장되며 개발자 도구에서 보일 수 있습니다. 공용 컴퓨터에서는 저장하지 마세요.</p>
+            <div class="form-actions field-wide">
+              <button class="btn btn-ghost btn-sm" type="submit">키 저장</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="ai-key-remove">키 삭제</button>
+              <p class="form-msg" id="ai-key-msg" role="status" aria-live="polite"></p>
+            </div>
+          </form>
+          <label class="check"><input type="checkbox" id="ai-names"> 상품명을 함께 보내기 (기본: 보내지 않음)</label>
+          <details class="payload">
+            <summary>전송될 내용 미리 보기</summary>
+            <pre id="ai-payload" class="pre"></pre>
+          </details>
+          <div class="inline-actions">
+            <button class="btn btn-primary" type="button" id="ai-run">AI로 분석 (내 키 사용)</button>
+            <button class="btn btn-ghost" type="button" id="ai-local">키 없이 규칙 기반 분석</button>
+          </div>
+          <p class="form-msg" id="ai-msg" role="status" aria-live="polite"></p>
+          <div id="ai-output" class="ai-output" aria-live="polite"></div>
+        </div>
+
+        <div class="panel" id="panel-backup" aria-labelledby="backup-title">
+          <div class="panel-head">
+            <h3 id="backup-title">백업 · 복원</h3>
+          </div>
+          <p class="basis">데이터는 이 브라우저에만 있습니다. 기기를 바꾸거나 기록을 지우기 전에 JSON으로 내려받아 두세요.</p>
+          <div class="inline-actions">
+            <button class="btn btn-primary btn-sm" type="button" id="btn-json-export">JSON 백업 내려받기</button>
+            <label class="file-btn">JSON 백업 가져오기 (덮어쓰기)
+              <input type="file" id="json-file" accept=".json,application/json">
+            </label>
+            <button class="btn btn-danger btn-sm" type="button" id="btn-clear">전체 데이터 삭제</button>
+          </div>
+          <p class="form-msg" id="backup-msg" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="faq" aria-labelledby="faq-title">
+      <div class="wrap narrow">
+        <p class="eyebrow">FAQ</p>
+        <h2 id="faq-title">자주 묻는 질문</h2>
+        <details class="faq"><summary>부가세는 어떻게 계산하나요?</summary><p>부가세 분리를 켜면 판매가에서 10%를 역산해 뺀 금액을 매출로 봅니다. 원가와 포장비는 부가세를 뺀 금액으로 입력한다고 가정합니다. 면세 또는 간이과세 상황이라면 분리를 끄고 판매가 전액을 매출로 보세요.</p></details>
+        <details class="faq"><summary>손익분기 ROAS는 무엇인가요?</summary><p>판매가를 광고 전 순이익으로 나눈 값입니다. 주문 한 건당 쓸 수 있는 최대 광고비(손익분기 광고비)를 ROAS로 바꾼 것이라서, 실제 ROAS가 이 값보다 낮으면 광고비가 이익을 넘어섭니다.</p></details>
+        <details class="faq"><summary>반품률은 어떻게 반영되나요?</summary><p>반품된 주문은 매출이 환불되고, 원가는 재입고된다고 봅니다. 수수료와 포장·배송비는 돌려받지 못한다고 보며, 반품 1건당 추가 손실(회수·폐기 등)을 따로 더합니다. 기대 순마진은 반품률만큼 가중 평균한 값입니다.</p></details>
+        <details class="faq"><summary>내 데이터는 어디에 저장되나요?</summary><p>이 브라우저의 localStorage에만 저장되며 서버로 보내지 않습니다. AI 기능을 쓸 때만 요약 숫자가 Anthropic API로 전송되며, 전송 내용은 버튼 옆에서 미리 볼 수 있습니다.</p></details>
+        <details class="faq"><summary>수수료 예시 값은 믿어도 되나요?</summary><p>아닙니다. 모든 예시 수수료는 계산 흐름을 보여주기 위한 값이며 공식 요율이 아닙니다. 각 채널의 최신 정책을 확인해 채널 수수료 표에서 직접 수정하세요.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-grid">
+      <div>
+        <p class="brand-line">셀러마진</p>
+        <p class="small">상품별 순마진과 광고 손익분기를 계산하는 도구입니다.</p>
+      </div>
+      <div>
+        <p class="small"><strong>데이터는 이 브라우저에만 저장됩니다.</strong> 서버로 전송하지 않습니다 (AI 분석 버튼을 누른 경우 제외).</p>
+        <p class="small">면책: 계산 결과는 참고용 추정치이며 세무·법률·재무 자문이 아닙니다. 수수료·세율 기준일과 적용 값은 README와 화면에 표시된 기준을 확인하세요.</p>
+      </div>
+      <p class="small copy">© 2026 셀러마진. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
