@@ -448,8 +448,9 @@ function breakEvenSvg(r, currentAd) {
   kids.push(svgEl('line', { x1: sx(m.line.x1), y1: sy(m.line.y1), x2: sx(m.line.x2), y2: sy(m.line.y2), class: 'be-line' }));
   if (m.bep) {
     kids.push(svgEl('circle', { cx: sx(m.bep.x), cy: sy(m.bep.y), r: 6, class: 'be-bep' }));
-    const endAnchor = sx(m.bep.x) > W - 200 ? 'end' : 'start';
-    kids.push(svgText(sx(m.bep.x) + (endAnchor === 'start' ? 8 : -8), sy(0) - 10, `손익분기 ${won(Math.round(m.bep.x))}`, { 'text-anchor': endAnchor, class: 'be-label' }));
+    const bx = sx(m.bep.x);
+    const anchor = bx > W - 200 ? 'end' : bx < 200 ? 'start' : 'middle';
+    kids.push(svgText(bx + (anchor === 'start' ? -2 : anchor === 'end' ? 2 : 0), sy(0) + 20, `손익분기 ${won(Math.round(m.bep.x))}`, { 'text-anchor': anchor, class: 'be-label' }));
   }
   const cx = sx(m.current.x), cy = sy(m.current.y);
   kids.push(svgEl('circle', { cx, cy, r: 6, class: 'be-now' }));
