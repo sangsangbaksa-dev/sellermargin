@@ -664,12 +664,27 @@ function niceCeil(v) {
   return Math.ceil(v / m) * m;
 }
 
+/** 범위를 대략 4칸으로 나누는 보기 좋은 간격 (1, 2, 5 × 10^k). */
+function niceStep(range) {
+  if (!(range > 0)) return 1000;
+  const raw = range / 4;
+  const m = 10 ** Math.floor(Math.log10(raw));
+  const n = raw / m;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * m;
+}
+
+/** lo 이상 hi 이하의 간격 배수 눈금 (0 이 범위 안에 있으면 항상 포함). */
+function gridTicks(lo, hi, step) {
+  const out = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(Math.round(v) || 0); // || 0 으로 -0 제거
+  return out;
+}
+
 export function breakEvenChartModel(result, currentAd = 0) {
   const E = result.expectedPreAd;
   const xMax = niceCeil(Math.max(Math.abs(E), currentAd, 1000) * 1.2);
   const yMax = Math.max(E, 0);
   const yMin = Math.min(0, E - xMax);
-  const ticks = (max, n = 4) => Array.from({ length: n + 1 }, (_, i) => Math.round((max * i) / n));
   return {
     xMax,
     yMin,
@@ -677,8 +692,8 @@ export function breakEvenChartModel(result, currentAd = 0) {
     line: { x1: 0, y1: E, x2: xMax, y2: E - xMax },
     bep: E > 0 ? { x: E, y: 0 } : null,
     current: { x: currentAd, y: E - currentAd },
-    xTicks: ticks(xMax),
-    yTicks: ticks(yMax - yMin).map((t) => Math.round(yMin + t)),
+    xTicks: gridTicks(0, xMax, niceStep(xMax)),
+    yTicks: gridTicks(yMin, yMax, niceStep(yMax - yMin)),
   };
 }
 

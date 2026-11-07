@@ -504,10 +504,12 @@ describe('손익분기 차트 모델', () => {
     assert.equal(m.current.x, 1000);
     assert.equal(m.current.y, r.expectedPreAd - 1000);
     assert.ok(m.xMax >= r.expectedPreAd && m.xMax >= 1000);
-    assert.equal(m.xTicks.length, 5);
     assert.equal(m.xTicks[0], 0);
-    assert.equal(m.xTicks[4], m.xMax);
+    assert.ok(m.xTicks.every((v) => v >= 0 && v <= m.xMax));
     assert.ok(m.yMin <= 0 && m.yMax >= 0);
+    assert.ok(m.yTicks.includes(0), '0 눈금이 있어야 손익분기 기준선을 읽을 수 있다');
+    assert.ok(m.yTicks.every((v) => v >= m.yMin && v <= m.yMax));
+    assert.ok(!m.yTicks.some((v) => Object.is(v, -0)), '-0 눈금이 나오면 안 된다');
   });
 
   test('광고 전 적자면 손익분기 점은 없고 y 범위가 음수까지 내려간다', () => {
