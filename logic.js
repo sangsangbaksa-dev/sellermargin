@@ -1,14 +1,28 @@
 // 순수 계산 로직 (DOM 없음). 모든 금액은 원(KRW) 정수로 다룬다.
 // 반올림 규칙: 0.5 는 절대값 기준으로 올림 (rnd 참고). 중간값은 실수로 두고 금액 항목마다 한 번만 반올림한다.
+// 사용자에게 보이는 문구는 i18n.js 의 t() 로 가져온다. 기본 언어는 ko 이다.
+
+import { t, localeTag } from './i18n.js';
+
+const fmtNum = (n) => new Intl.NumberFormat(localeTag()).format(n);
+/** 원 금액 표기. 한국어는 '1,000원', 그 밖의 언어는 'KRW 1,000' 형식. */
+export function krw(n) {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—';
+  if (localeTag() === 'ko-KR') return `${fmtNum(n)}원`;
+  return new Intl.NumberFormat(localeTag(), { style: 'currency', currency: 'KRW', currencyDisplay: 'code' }).format(n);
+}
 
 /**
  * 모든 숫자 기준값은 여기 한 곳에서 관리한다. 수수료·세율은 바뀔 수 있으므로 직접 확인 후 수정할 것.
  */
+function preset(id, saleFeeRate, pgFeeRate, fixedFee, vatSeparate) {
+  return Object.freeze({ id, saleFeeRate, pgFeeRate, fixedFee, vatSeparate, get name() { return t(`preset.${id}`); } });
+}
+
 export const CONSTANTS = Object.freeze({
   AS_OF_DATE: '2026-11',
   APPLY_YEAR: 2026,
   VAT_RATE: 0.1,
-  VAT_SOURCE: '부가가치세 일반과세 표준세율 10% (적용 연도 2026, 법령 개정 시 수정)',
   DEFAULT_TARGET_MARGIN: 15,
   MAX_MONEY: 100000000,
   MAX_PRICE: 100000000,
@@ -17,20 +31,27 @@ export const CONSTANTS = Object.freeze({
   MAX_VOLUME: 1000000,
   MAX_TEXT: 80,
   MAX_PRODUCTS: 2000,
-  PRESET_LABEL: '예시 수수료 · 확인 필요 · 기준일 2026-11 (공식 요율 아님)',
-  VAT_LABEL: '부가세 10% 가정 · 확인 필요',
+  get VAT_SOURCE() { return t('basis.vatSource'); },
+  get PRESET_LABEL() { return t('basis.presetLabel'); },
+  get VAT_LABEL() { return t('basis.vatLabel'); },
+  // 예시 채널 이름은 데이터이므로 id 로 사전에서 찾는다.
   CHANNEL_PRESETS: Object.freeze([
-    { id: 'smartstore', name: '스마트스토어', saleFeeRate: 5.5, pgFeeRate: 3.5, fixedFee: 0, vatSeparate: true },
-    { id: 'coupang', name: '쿠팡 마켓플레이스', saleFeeRate: 10.8, pgFeeRate: 0, fixedFee: 0, vatSeparate: true },
-    { id: 'elevenst', name: '11번가', saleFeeRate: 12, pgFeeRate: 3, fixedFee: 0, vatSeparate: true },
-    { id: 'own', name: '자사몰', saleFeeRate: 0, pgFeeRate: 3.3, fixedFee: 200, vatSeparate: true },
-    { id: 'etsy', name: 'Etsy (글로벌 예시)', saleFeeRate: 6.5, pgFeeRate: 3, fixedFee: 600, vatSeparate: false },
-    { id: 'fba', name: 'Amazon FBA (단순화 예시)', saleFeeRate: 15, pgFeeRate: 0, fixedFee: 3000, vatSeparate: false },
+    preset('smartstore', 5.5, 3.5, 0, true),
+    preset('coupang', 10.8, 0, 0, true),
+    preset('elevenst', 12, 3, 0, true),
+    preset('own', 0, 3.3, 200, true),
+    preset('etsy', 6.5, 3, 600, false),
+    preset('fba', 15, 0, 3000, false),
   ]),
 });
 
+/** 예시 채널 이름. 사용자가 이름을 바꾸면 그 값을 쓴다. */
+export function presetName(id) {
+  return t(`preset.${id}`);
+}
+
 export const HEALTH = Object.freeze({ LOSS: 'loss', RISK: 'risk', GOOD: 'good', INVALID: 'invalid' });
-export const HEALTH_LABEL = Object.freeze({ loss: '적자', risk: '위험', good: '양호', invalid: '입력 확인' });
+export function healthLabel(h) { return t(`health.${h}`); }
 
 /** 원 단위 반올림: 0.5 는 절대값 기준 올림 (2.5 -> 3, -2.5 -> -3). */
 export function rnd(x) {
@@ -49,59 +70,59 @@ function isBlank(raw) {
 }
 
 /** 정수 원 금액 파싱. 소수점·문자·범위 초과는 오류. */
-export function parseMoney(raw, { min = 0, max = CONSTANTS.MAX_MONEY, optional = false, field = '금액' } = {}) {
+export function parseMoney(raw, { min = 0, max = CONSTANTS.MAX_MONEY, optional = false, field = t('f.money') } = {}) {
   if (isBlank(raw)) {
-    return optional ? { ok: true, value: 0 } : { ok: false, error: `${field}을(를) 입력하세요` };
+    return optional ? { ok: true, value: 0 } : { ok: false, error: t('err.required', { field }) };
   }
   if (typeof raw === 'number') {
-    if (!Number.isSafeInteger(raw)) return { ok: false, error: `${field}은(는) 정수 원 단위여야 합니다` };
+    if (!Number.isSafeInteger(raw)) return { ok: false, error: t('err.notInt', { field }) };
     return checkRange(raw, min, max, field);
   }
   const s = stripNumeric(raw);
-  if (!INT_RE.test(s)) return { ok: false, error: `${field}은(는) 정수 원 단위 숫자여야 합니다` };
+  if (!INT_RE.test(s)) return { ok: false, error: t('err.notIntNum', { field }) };
   return checkRange(Number(s), min, max, field);
 }
 
 function checkRange(v, min, max, field) {
-  if (!Number.isSafeInteger(v)) return { ok: false, error: `${field}이(가) 너무 큽니다` };
-  if (v < min) return { ok: false, error: `${field}은(는) ${min.toLocaleString('ko-KR')} 이상이어야 합니다` };
-  if (v > max) return { ok: false, error: `${field}은(는) ${max.toLocaleString('ko-KR')} 이하여야 합니다` };
+  if (!Number.isSafeInteger(v)) return { ok: false, error: t('err.tooLarge', { field }) };
+  if (v < min) return { ok: false, error: t('err.minVal', { field, min: fmtNum(min) }) };
+  if (v > max) return { ok: false, error: t('err.maxVal', { field, max: fmtNum(max) }) };
   return { ok: true, value: v };
 }
 
 /** 퍼센트 파싱 (소수 둘째 자리까지). 0~100. */
-export function parseRate(raw, { optional = false, field = '비율' } = {}) {
+export function parseRate(raw, { optional = false, field = t('f.rate') } = {}) {
   if (isBlank(raw)) {
-    return optional ? { ok: true, value: 0 } : { ok: false, error: `${field}을(를) 입력하세요` };
+    return optional ? { ok: true, value: 0 } : { ok: false, error: t('err.required', { field }) };
   }
   const s = stripNumeric(typeof raw === 'number' ? String(raw) : raw);
-  if (!RATE_RE.test(s)) return { ok: false, error: `${field}은(는) 숫자(소수 둘째 자리까지)여야 합니다` };
+  if (!RATE_RE.test(s)) return { ok: false, error: t('err.rateNumber', { field }) };
   const v = Number(s);
-  if (v < 0) return { ok: false, error: `${field}은(는) 0 이상이어야 합니다` };
-  if (v > CONSTANTS.MAX_RATE) return { ok: false, error: `${field}은(는) 100 이하여야 합니다` };
+  if (v < 0) return { ok: false, error: t('err.rateMin', { field }) };
+  if (v > CONSTANTS.MAX_RATE) return { ok: false, error: t('err.rateMax', { field }) };
   return { ok: true, value: v };
 }
 
 /** 목표 ROAS 파싱 (0.01 ~ 1000, 0은 나눗셈 불가이므로 거부). */
-export function parseRoas(raw, { field = '목표 ROAS' } = {}) {
-  if (isBlank(raw)) return { ok: false, error: `${field}을(를) 입력하세요` };
+export function parseRoas(raw, { field = t('f.roas') } = {}) {
+  if (isBlank(raw)) return { ok: false, error: t('err.required', { field }) };
   const s = stripNumeric(typeof raw === 'number' ? String(raw) : raw).replace(/x$/i, '');
-  if (!RATE_RE.test(s)) return { ok: false, error: `${field}은(는) 숫자여야 합니다` };
+  if (!RATE_RE.test(s)) return { ok: false, error: t('err.roasNumber', { field }) };
   const v = Number(s);
-  if (v <= 0) return { ok: false, error: `${field}은(는) 0보다 커야 합니다 (0이면 나눗셈이 불가능합니다)` };
-  if (v > CONSTANTS.MAX_ROAS) return { ok: false, error: `${field}이(가) 너무 큽니다` };
+  if (v <= 0) return { ok: false, error: t('err.roasPositive', { field }) };
+  if (v > CONSTANTS.MAX_ROAS) return { ok: false, error: t('err.tooLarge', { field }) };
   return { ok: true, value: v };
 }
 
 /** 월 판매량 파싱 (정수 0 ~ MAX_VOLUME). */
-export function parseVolume(raw, { field = '월 판매량' } = {}) {
+export function parseVolume(raw, { field = t('f.volume') } = {}) {
   return parseMoney(raw, { min: 0, max: CONSTANTS.MAX_VOLUME, optional: true, field });
 }
 
-function parseText(raw, { max = CONSTANTS.MAX_TEXT, required = false, field = '텍스트' } = {}) {
+function parseText(raw, { max = CONSTANTS.MAX_TEXT, required = false, field = t('f.text') } = {}) {
   const s = raw === null || raw === undefined ? '' : String(raw).trim();
-  if (required && s === '') return { ok: false, error: `${field}을(를) 입력하세요` };
-  if (s.length > max) return { ok: false, error: `${field}은(는) ${max}자 이하여야 합니다` };
+  if (required && s === '') return { ok: false, error: t('err.required', { field }) };
+  if (s.length > max) return { ok: false, error: t('err.textMax', { field, max }) };
   return { ok: true, value: s };
 }
 
@@ -116,13 +137,13 @@ export function newId(prefix = 'id') {
 export function validateChannel(input) {
   const errors = {};
   const out = { id: '', name: '', saleFeeRate: 0, pgFeeRate: 0, fixedFee: 0, vatSeparate: false };
-  const name = parseText(input.name, { required: true, max: 40, field: '채널 이름' });
+  const name = parseText(input.name, { required: true, max: 40, field: t('f.channelName') });
   if (!name.ok) errors.name = name.error; else out.name = name.value;
-  const sale = parseRate(input.saleFeeRate, { field: '판매 수수료' });
+  const sale = parseRate(input.saleFeeRate, { field: t('f.saleFee') });
   if (!sale.ok) errors.saleFeeRate = sale.error; else out.saleFeeRate = sale.value;
-  const pg = parseRate(input.pgFeeRate, { optional: true, field: '결제/PG 수수료' });
+  const pg = parseRate(input.pgFeeRate, { optional: true, field: t('f.pgFee') });
   if (!pg.ok) errors.pgFeeRate = pg.error; else out.pgFeeRate = pg.value;
-  const fixed = parseMoney(input.fixedFee, { optional: true, field: '주문당 고정 수수료' });
+  const fixed = parseMoney(input.fixedFee, { optional: true, field: t('f.fixedFee') });
   if (!fixed.ok) errors.fixedFee = fixed.error; else out.fixedFee = fixed.value;
   out.vatSeparate = input.vatSeparate === true || input.vatSeparate === 'true' || input.vatSeparate === 'on';
   out.id = typeof input.id === 'string' && /^[\w-]{1,60}$/.test(input.id) ? input.id : newId('ch');
@@ -142,19 +163,19 @@ export function validateProduct(input, channelIds = []) {
 
   const id = typeof input.id === 'string' && /^[\w-]{1,60}$/.test(input.id) ? input.id : newId('p');
   out.id = id;
-  set('name', parseText(input.name, { required: true, field: '상품명' }));
-  set('sku', parseText(input.sku, { max: 40, field: 'SKU' }));
+  set('name', parseText(input.name, { required: true, field: t('f.productName') }));
+  set('sku', parseText(input.sku, { max: 40, field: t('f.sku') }));
 
   const ch = typeof input.channelId === 'string' ? input.channelId : '';
-  if (channelIds.length && !channelIds.includes(ch)) errors.channelId = '채널을 선택하세요';
+  if (channelIds.length && !channelIds.includes(ch)) errors.channelId = t('err.channelPick');
   else out.channelId = ch;
 
-  set('price', parseMoney(input.price, { min: 1, max: CONSTANTS.MAX_PRICE, field: '판매가' }));
-  set('cogs', parseMoney(input.cogs, { optional: true, field: '원가' }));
-  set('packaging', parseMoney(input.packaging, { optional: true, field: '포장비' }));
-  set('shipping', parseMoney(input.shipping, { optional: true, field: '배송비 부담액' }));
-  set('returnRate', parseRate(input.returnRate, { optional: true, field: '반품률' }));
-  set('returnLoss', parseMoney(input.returnLoss, { optional: true, field: '반품 1건당 추가 손실' }));
+  set('price', parseMoney(input.price, { min: 1, max: CONSTANTS.MAX_PRICE, field: t('f.price') }));
+  set('cogs', parseMoney(input.cogs, { optional: true, field: t('f.cogs') }));
+  set('packaging', parseMoney(input.packaging, { optional: true, field: t('f.packaging') }));
+  set('shipping', parseMoney(input.shipping, { optional: true, field: t('f.shipping') }));
+  set('returnRate', parseRate(input.returnRate, { optional: true, field: t('f.returnRate') }));
+  set('returnLoss', parseMoney(input.returnLoss, { optional: true, field: t('f.returnLoss') }));
   set('volume', parseVolume(input.volume));
 
   out.adMode = input.adMode === 'roas' ? 'roas' : 'perOrder';
@@ -162,7 +183,7 @@ export function validateProduct(input, channelIds = []) {
     const roas = parseRoas(input.roasTarget);
     if (roas.ok) out.roasTarget = roas.value; else errors.roasTarget = roas.error;
   } else {
-    set('adPerOrder', parseMoney(input.adPerOrder, { optional: true, field: '주문당 광고비' }));
+    set('adPerOrder', parseMoney(input.adPerOrder, { optional: true, field: t('f.adPerOrder') }));
   }
   return { ok: Object.keys(errors).length === 0, product: out, errors };
 }
@@ -339,7 +360,7 @@ export function sortRows(rows, key, dir = 'desc') {
     if (va === null && vb === null) return 0;
     if (va === null) return 1;
     if (vb === null) return -1;
-    if (typeof va === 'string') return mul * va.localeCompare(vb, 'ko');
+    if (typeof va === 'string') return mul * va.localeCompare(vb, localeTag());
     return mul * (va - vb);
   });
 }
@@ -386,11 +407,12 @@ export function parseCsv(input) {
     }
     field += c; i += 1;
   }
-  const error = inQuotes ? '따옴표(")가 닫히지 않은 행이 있습니다' : null;
+  const error = inQuotes ? t('csv.unclosedQuote') : null;
   if (field !== '' || cells.length) pushRow();
   return { rows, error };
 }
 
+// 열 이름 별칭. 한국어 헤더(내보내기 형식)와 영문 헤더를 모두 받는다. 파일 형식이므로 번역하지 않는다.
 const HEADER_ALIASES = {
   name: ['상품명', 'name', 'product', 'title'],
   sku: ['sku', '품번', '상품코드'],
@@ -417,7 +439,7 @@ export function mapCsvProducts(text, channels) {
   const { rows, error: parseError } = parseCsv(text);
   const errors = [];
   if (parseError) errors.push({ line: 0, message: parseError });
-  if (rows.length === 0) return { products: [], errors: [...errors, { line: 0, message: '데이터가 없습니다' }], total: 0 };
+  if (rows.length === 0) return { products: [], errors: [...errors, { line: 0, message: t('csv.noData') }], total: 0 };
 
   const header = rows[0];
   const colOf = {};
@@ -429,10 +451,10 @@ export function mapCsvProducts(text, channels) {
   });
   const missing = ['name', 'price'].filter((k) => colOf[k] === undefined);
   if (missing.length) {
-    const names = { name: '상품명', price: '판매가' };
+    const names = { name: t('f.productName'), price: t('f.price') };
     return {
       products: [],
-      errors: [...errors, { line: header.line, message: `헤더에 필수 열이 없습니다: ${missing.map((k) => names[k]).join(', ')}` }],
+      errors: [...errors, { line: header.line, message: t('csv.missingCols', { cols: missing.map((k) => names[k]).join(', ') }) }],
       total: 0,
     };
   }
@@ -449,11 +471,11 @@ export function mapCsvProducts(text, channels) {
     const chRaw = get(cells, 'channel');
     if (chRaw) {
       const found = channels.find((c) => c.id === chRaw || normHeader(c.name) === normHeader(chRaw));
-      if (found) channelId = found.id; else rowErrors.push(`알 수 없는 채널 "${chRaw}"`);
+      if (found) channelId = found.id; else rowErrors.push(t('csv.unknownChannel', { name: chRaw }));
     }
     const adRaw = get(cells, 'adPerOrder');
     const roasRaw = get(cells, 'roasTarget');
-    if (adRaw !== '' && roasRaw !== '') rowErrors.push('광고비와 목표 ROAS 중 하나만 입력하세요');
+    if (adRaw !== '' && roasRaw !== '') rowErrors.push(t('csv.adAndRoas'));
     const input = {
       name: get(cells, 'name'),
       sku: get(cells, 'sku'),
@@ -502,19 +524,19 @@ export function defaultState() {
   return {
     version: STATE_VERSION,
     settings: { targetMargin: CONSTANTS.DEFAULT_TARGET_MARGIN, scenarios: { ...SCENARIO_DEFAULTS } },
-    channels: CONSTANTS.CHANNEL_PRESETS.map((c) => ({ ...c, source: 'preset' })),
+    channels: CONSTANTS.CHANNEL_PRESETS.map((c) => ({ ...c, name: presetName(c.id), source: 'preset' })),
     products: [],
   };
 }
 
 export function validateTargetMargin(raw) {
-  return parseRate(raw, { field: '목표 마진율' });
+  return parseRate(raw, { field: t('f.targetMargin') });
 }
 
 /** 저장/복원용 상태 검증. 잘못된 행은 버리고 개수를 알려준다. */
 export function validateState(obj) {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return { ok: false, error: 'JSON 객체가 아닙니다' };
-  if (obj.version !== STATE_VERSION) return { ok: false, error: `지원하지 않는 백업 버전입니다 (version ${obj.version})` };
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return { ok: false, error: t('err.notObject') };
+  if (obj.version !== STATE_VERSION) return { ok: false, error: t('err.badVersion', { v: obj.version }) };
   const channels = [];
   const channelErrors = [];
   for (const raw of Array.isArray(obj.channels) ? obj.channels : []) {
@@ -522,7 +544,7 @@ export function validateState(obj) {
     if (res.ok) channels.push({ ...res.channel, source: raw.source === 'preset' ? 'preset' : 'custom' });
     else channelErrors.push(Object.values(res.errors).join(' / '));
   }
-  if (channels.length === 0) return { ok: false, error: '유효한 채널이 없습니다' };
+  if (channels.length === 0) return { ok: false, error: t('err.noChannel') };
   const ids = channels.map((c) => c.id);
   const products = [];
   let droppedProducts = 0;
@@ -553,7 +575,7 @@ export function importStateJson(text) {
   try {
     obj = JSON.parse(String(text));
   } catch {
-    return { ok: false, error: 'JSON 형식이 올바르지 않습니다' };
+    return { ok: false, error: t('err.badJson') };
   }
   return validateState(obj);
 }
@@ -569,15 +591,15 @@ const MULT_RE = /^\d+(\.\d{1,2})?$/;
 export function validateScenarioSettings(input = {}) {
   const errors = {};
   const out = { ...SCENARIO_DEFAULTS };
-  const promo = input.promoDiscount === undefined || input.promoDiscount === '' ? { ok: true, value: SCENARIO_DEFAULTS.promoDiscount } : parseRate(input.promoDiscount, { field: '프로모 할인율' });
+  const promo = input.promoDiscount === undefined || input.promoDiscount === '' ? { ok: true, value: SCENARIO_DEFAULTS.promoDiscount } : parseRate(input.promoDiscount, { field: t('f.promo') });
   if (!promo.ok) errors.promoDiscount = promo.error;
-  else if (promo.value > 50) errors.promoDiscount = '프로모 할인율은 0~50% 범위여야 합니다';
+  else if (promo.value > 50) errors.promoDiscount = t('err.promoRange');
   else out.promoDiscount = promo.value;
 
   const rawMult = input.adMultiplier === undefined || input.adMultiplier === '' ? SCENARIO_DEFAULTS.adMultiplier : input.adMultiplier;
   const s = String(rawMult).trim().replace(/x$/i, '');
-  if (!MULT_RE.test(s)) errors.adMultiplier = '광고 배율은 숫자(소수 둘째 자리까지)여야 합니다 (예: 2)';
-  else if (Number(s) < 1 || Number(s) > 10) errors.adMultiplier = '광고 배율은 1~10 범위여야 합니다';
+  if (!MULT_RE.test(s)) errors.adMultiplier = t('err.multNumber');
+  else if (Number(s) < 1 || Number(s) > 10) errors.adMultiplier = t('err.multRange');
   else out.adMultiplier = Number(s);
   return { ok: Object.keys(errors).length === 0, value: out, errors };
 }
@@ -593,9 +615,9 @@ export function computeScenarios(p, channel, { targetMargin = CONSTANTS.DEFAULT_
   const promo = computeProduct(p, channel, { targetMargin, discountRate: promoDiscount });
   const adHeavy = computeProduct(p, channel, { targetMargin, adPerOrder: rnd(base.adPerOrder * adMultiplier) });
   return [
-    { key: 'base', label: '기준', detail: '입력값 그대로', result: base },
-    { key: 'promo', label: '프로모', detail: `할인 ${promoDiscount}%`, result: promo },
-    { key: 'adHeavy', label: '광고 강화', detail: `주문당 광고비 ×${adMultiplier}`, result: adHeavy },
+    { key: 'base', label: t('scn.base'), detail: t('scn.baseDetail'), result: base },
+    { key: 'promo', label: t('scn.promo'), detail: t('scn.promoDetail', { d: promoDiscount }), result: promo },
+    { key: 'adHeavy', label: t('scn.adHeavy'), detail: t('scn.adHeavyDetail', { m: adMultiplier }), result: adHeavy },
   ];
 }
 
@@ -646,7 +668,7 @@ export function monthlyPnlByChannel(rows, channels = []) {
   const list = [...map.values()].filter((r) => r.count > 0).map(finish);
   const sum = (k) => list.reduce((acc, r) => acc + r[k], 0);
   const total = finish({
-    channelId: '__total', name: '합계', count: sum('count'), volume: sum('volume'), revenue: sum('revenue'), cogs: sum('cogs'),
+    channelId: '__total', name: t('pnl.total'), count: sum('count'), volume: sum('volume'), revenue: sum('revenue'), cogs: sum('cogs'),
     handling: sum('handling'), fees: sum('fees'), returnDrag: sum('returnDrag'), ad: sum('ad'), net: sum('net'),
   });
   return { channels: list, total };
@@ -681,8 +703,8 @@ export function targetProfitRows(rows, monthlyTarget) {
   }));
   return out.sort((a, b) => {
     if (a.ok !== b.ok) return a.ok ? -1 : 1;
-    if (a.ok) return a.volume - b.volume || a.productName.localeCompare(b.productName, 'ko');
-    return a.productName.localeCompare(b.productName, 'ko');
+    if (a.ok) return a.volume - b.volume || a.productName.localeCompare(b.productName, localeTag());
+    return a.productName.localeCompare(b.productName, localeTag());
   });
 }
 
@@ -735,6 +757,7 @@ export function breakEvenChartModel(result, currentAd = 0) {
  * 오류 보고서 CSV (CSV 가져오기 행별 오류를 내려받을 때)
  * ------------------------------------------------------------------ */
 export function errorReportCsv(errors) {
+  // 열 이름은 파일 형식이므로 한국어로 고정한다 (가져오기와 호환).
   return toCsv(['줄', '오류 내용'], (errors || []).map((e) => [e.line || '', e.message]));
 }
 
@@ -747,10 +770,10 @@ const KEY_RE = /^sk-ant-[A-Za-z0-9_-]{20,200}$/;
 /** 키 형식만 검사한다 (실제 유효성은 API 호출로만 확인 가능). */
 export function checkKeyFormat(raw) {
   const key = String(raw ?? '').trim();
-  if (key === '') return { ok: false, error: 'API 키를 입력하세요' };
-  if (/\s/.test(key)) return { ok: false, error: '키에 공백이 포함되어 있습니다' };
-  if (!key.startsWith('sk-ant-')) return { ok: false, error: 'Anthropic 키는 "sk-ant-"로 시작합니다' };
-  if (!KEY_RE.test(key)) return { ok: false, error: '키 길이 또는 문자 형식이 올바르지 않습니다' };
+  if (key === '') return { ok: false, error: t('err.keyEmpty') };
+  if (/\s/.test(key)) return { ok: false, error: t('err.keySpace') };
+  if (!key.startsWith('sk-ant-')) return { ok: false, error: t('err.keyPrefix') };
+  if (!KEY_RE.test(key)) return { ok: false, error: t('err.keyLength') };
   return { ok: true, key };
 }
 
@@ -760,18 +783,20 @@ export function checkKeyFormat(raw) {
  */
 export function buildAdvicePrompt(items, { targetMargin, includeNames = false, names = [] } = {}) {
   const lines = items.map((it, idx) => {
-    const label = includeNames && names[idx] ? names[idx] : `상품 ${String.fromCharCode(65 + idx)}`;
-    const f = (v, unit = '') => (v === null || v === undefined || Number.isNaN(v) ? '없음' : `${Math.round(v * 100) / 100}${unit}`);
-    return `- ${label}: 판매가 ${f(it.price, '원')}, 순마진 ${f(it.net, '원')}, 마진율 ${f(it.marginRate, '%')}, 손익분기 ROAS ${f(it.bepRoas)}, 주문당 광고비 ${f(it.adPerOrder, '원')}, 반품률 ${f(it.returnRate, '%')}, 월 판매량 ${f(it.volume, '개')}`;
+    const label = includeNames && names[idx] ? names[idx] : t('ai.anonLabel', { x: String.fromCharCode(65 + idx) });
+    const none = t('common.none');
+    const f = (v, unit = '') => (v === null || v === undefined || Number.isNaN(v) ? none : `${Math.round(v * 100) / 100}${unit}`);
+    const money = (v) => (v === null || v === undefined || Number.isNaN(v) ? none : krw(Math.round(v)));
+    return `- ${label}: ${t('ai.line.price')} ${money(it.price)}, ${t('ai.line.net')} ${money(it.net)}, ${t('ai.line.margin')} ${f(it.marginRate, '%')}, ${t('ai.line.bep')} ${f(it.bepRoas)}, ${t('ai.line.ad')} ${money(it.adPerOrder)}, ${t('ai.line.returnRate')} ${f(it.returnRate, '%')}, ${t('ai.line.volume')} ${f(it.volume, ' ' + t('unit.pcs'))}`;
   });
   return [
-    '온라인 셀러의 마진 데이터입니다. 아래 최하위 상품들에 대해 가격 또는 광고비 조정 방향을 제안하세요.',
-    `목표 마진율: ${targetMargin}%`,
+    t('ai.prompt.intro'),
+    t('ai.prompt.target', { m: targetMargin }),
     '',
     ...lines,
     '',
-    '규칙: 한국어로 답하고, 법률·세무 자문은 하지 마세요. 반드시 아래 JSON 형식만 출력하세요.',
-    '{"summary":"한 문장 요약","actions":[{"product":"상품 A","type":"price|ad|return|cost|other","suggestion":"구체적인 조치 한 문장"}]}',
+    t('ai.prompt.rule'),
+    '{"summary":"..." ,"actions":[{"product":"...","type":"price|ad|return|cost|other","suggestion":"..."}]}',
   ].join('\n');
 }
 
@@ -782,25 +807,25 @@ export function parseAdviceReply(text) {
   const s = String(text ?? '');
   const start = s.indexOf('{');
   const end = s.lastIndexOf('}');
-  if (start < 0 || end <= start) return { ok: false, error: '응답에서 JSON을 찾지 못했습니다' };
+  if (start < 0 || end <= start) return { ok: false, error: t('err.aiNoJson') };
   let obj;
   try {
     obj = JSON.parse(s.slice(start, end + 1));
   } catch {
-    return { ok: false, error: '응답 JSON 파싱에 실패했습니다' };
+    return { ok: false, error: t('err.aiParse') };
   }
-  if (!obj || typeof obj !== 'object') return { ok: false, error: '응답 형식이 올바르지 않습니다' };
+  if (!obj || typeof obj !== 'object') return { ok: false, error: t('err.aiShape') };
   const clip = (v, n) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n) : '');
   const summary = clip(obj.summary, 300);
   const actions = (Array.isArray(obj.actions) ? obj.actions : [])
     .slice(0, 10)
     .map((a) => ({
-      product: clip(a?.product, 40) || '상품',
+      product: clip(a?.product, 40) || t('ai.defaultProduct'),
       type: ACTION_TYPES.includes(a?.type) ? a.type : 'other',
       suggestion: clip(a?.suggestion, 300),
     }))
     .filter((a) => a.suggestion !== '');
-  if (!summary && actions.length === 0) return { ok: false, error: '응답에 표시할 내용이 없습니다' };
+  if (!summary && actions.length === 0) return { ok: false, error: t('err.aiEmpty') };
   return { ok: true, summary, actions };
 }
 
@@ -812,35 +837,35 @@ export function ruleBasedAdvice(rows, targetMargin) {
   const actions = [];
   for (const { label, product, channel, result } of rows) {
     if (result.health === HEALTH.INVALID) {
-      actions.push({ product: label, type: 'other', suggestion: '판매가 또는 매출 구조를 확인하세요 (매출이 0 이하입니다).' });
+      actions.push({ product: label, type: 'other', suggestion: t('rule.noRevenue') });
       continue;
     }
     if (result.health === HEALTH.GOOD) continue;
     if (result.expectedPreAd <= 0) {
-      actions.push({ product: label, type: 'cost', suggestion: `광고 전에도 적자입니다 (광고 전 순이익 ${result.expectedPreAd.toLocaleString('ko-KR')}원). 광고로 해결되지 않으니 원가·수수료·배송비·반품 손실을 먼저 점검하세요.` });
+      actions.push({ product: label, type: 'cost', suggestion: t('rule.lossBeforeAd', { v: krw(result.expectedPreAd) }) });
       continue;
     }
     const targetPrice = solvePriceForMargin(product, channel, targetMargin, { targetMargin, discountRate: 0, coupon: 0 });
     if (targetPrice !== null && targetPrice > product.price) {
       const up = targetPrice - product.price;
-      actions.push({ product: label, type: 'price', suggestion: `판매가를 ${up.toLocaleString('ko-KR')}원 올려 ${targetPrice.toLocaleString('ko-KR')}원으로 조정하면 목표 마진율 ${targetMargin}%에 근접합니다.` });
+      actions.push({ product: label, type: 'price', suggestion: t('rule.raisePrice', { up: krw(up), target: krw(targetPrice), m: targetMargin }) });
     } else if (targetPrice === null) {
-      actions.push({ product: label, type: 'cost', suggestion: `현재 수수료·원가 구조로는 목표 마진율 ${targetMargin}%에 도달할 수 없습니다. 원가 또는 수수료를 조정하세요.` });
+      actions.push({ product: label, type: 'cost', suggestion: t('rule.cannotReach', { m: targetMargin }) });
     }
     if (result.adPerOrder > 0) {
       const maxAd = result.expectedPreAd - rnd((targetMargin / 100) * result.netRevenue);
       if (maxAd >= 0 && maxAd < result.adPerOrder) {
-        actions.push({ product: label, type: 'ad', suggestion: `주문당 광고비를 ${maxAd.toLocaleString('ko-KR')}원 이하로 낮추면 목표 마진율에 맞습니다 (현재 ${result.adPerOrder.toLocaleString('ko-KR')}원).` });
+        actions.push({ product: label, type: 'ad', suggestion: t('rule.maxAd', { max: krw(maxAd), cur: krw(result.adPerOrder) }) });
       } else if (maxAd < 0) {
-        actions.push({ product: label, type: 'ad', suggestion: '광고비를 0으로 해도 목표 마진율에 못 미칩니다. 광고 중단 또는 가격·원가 조정을 검토하세요.' });
+        actions.push({ product: label, type: 'ad', suggestion: t('rule.zeroAdFail') });
       }
     }
     if (product.returnRate >= 5 && product.returnLoss > 0) {
-      actions.push({ product: label, type: 'return', suggestion: `반품률 ${product.returnRate}%입니다. 반품 원인(상세 설명·사이즈 안내)을 줄이면 기대 손실 ${result.returnDrag.toLocaleString('ko-KR')}원을 줄일 수 있습니다.` });
+      actions.push({ product: label, type: 'return', suggestion: t('rule.returnHigh', { rate: product.returnRate, loss: krw(result.returnDrag) }) });
     }
   }
   const summary = actions.length
-    ? `최하위 ${rows.length}개 상품에서 ${actions.length}개 조치를 찾았습니다 (규칙 기반, API 미사용).`
-    : '최하위 상품 중 조치가 필요한 항목이 없습니다.';
+    ? t('rule.summaryN', { n: rows.length, a: actions.length })
+    : t('rule.summaryNone');
   return { ok: true, summary, actions: actions.slice(0, 10) };
 }

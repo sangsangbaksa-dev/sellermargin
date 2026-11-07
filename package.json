@@ -5,7 +5,7 @@
   "description": "온라인 셀러 마진·광고 손익분기 계산기",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/logic.test.js",
+    "test": "node --test tests/*.test.js",
     "start": "python3 -m http.server 8121"
   }
 }

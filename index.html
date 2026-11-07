@@ -5,34 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>셀러마진 · 온라인 셀러 마진·광고 손익분기 계산기</title>
   <meta name="description" content="스마트스토어·쿠팡·11번가·자사몰 수수료, 부가세, 반품, 광고비를 넣으면 상품별 순마진과 손익분기 ROAS를 바로 계산합니다. 데이터는 브라우저에만 저장됩니다.">
-  <meta name="theme-color" content="#EA580C">
+  <meta name="theme-color" content="#F7F7F5">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ko_KR">
   <meta property="og:site_name" content="셀러마진">
   <meta property="og:title" content="셀러마진 · 상품별 순마진과 손익분기 ROAS 계산기">
   <meta property="og:description" content="수수료·부가세·반품·광고비를 넣으면 상품별 진짜 마진과 광고비 한계를 보여줍니다.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23EA580C'/%3E%3Ctext x='16' y='23' font-size='19' font-weight='700' text-anchor='middle' fill='%231C1917' font-family='Georgia,serif'%3E%25%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23154E4A'/%3E%3Cpath d='M9 22L22 9M11 10h2v2h-2zM19 20h2v2h-2z' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
-  <script>try{var t=localStorage.getItem("sellermargin-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+  <script>try{var th=localStorage.getItem("sellermargin-theme");if(th==="light"||th==="dark")document.documentElement.dataset.theme=th}catch(e){}</script>
 </head>
 <body>
-  <a class="skip" href="#calc">계산기로 바로가기</a>
+  <a class="skip" href="#calc" data-i18n="ix.skip">계산기로 바로가기</a>
 
   <header class="topbar">
     <div class="wrap topbar-inner">
-      <a class="brand" href="#top" aria-label="셀러마진 홈">
-        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><text x="16" y="23" font-size="19" font-weight="700" text-anchor="middle" fill="#1C1917" font-family="Georgia, serif">%</text></svg>
-        <span>셀러마진</span>
+      <a class="brand" href="#top" aria-label="셀러마진 홈" data-i18n-aria="ix.homeAria">
+        <span data-i18n="ix.brand">셀러마진</span>
       </a>
-      <nav class="topnav" aria-label="주요 메뉴">
-        <a href="#features">기능</a>
-        <a href="#how">사용법</a>
-        <a href="#rules">계산 규칙</a>
-        <a href="#faq">FAQ</a>
+      <nav class="topnav" aria-label="주요 메뉴" data-i18n-aria="ix.navAria">
+        <a href="#features" data-i18n="ix.navFeatures">기능</a>
+        <a href="#how" data-i18n="ix.navHow">사용법</a>
+        <a href="#rules" data-i18n="ix.navRules">계산 규칙</a>
+        <a href="#faq" data-i18n="ix.navFaq">FAQ</a>
       </nav>
       <div class="topbar-actions">
-        <button class="btn btn-ghost btn-sm" type="button" id="btn-theme">테마: 자동</button>
-        <a class="btn btn-primary btn-sm" href="#calc">계산 시작</a>
+        <select id="lang-select" class="lang-select" aria-label="언어" data-i18n-aria="common.language"></select>
+        <button class="btn btn-ghost btn-sm" type="button" id="btn-theme" data-i18n="ui.theme.auto">테마: 자동</button>
+        <a class="btn btn-primary btn-sm" href="#calc" data-i18n="ix.topCta">계산 시작</a>
       </div>
     </div>
   </header>
@@ -41,62 +41,62 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">온라인 셀러 마진 계산기</p>
-          <h1 id="hero-title">수수료와 광고비를 빼고 나면, 상품마다 남는 돈</h1>
-          <p class="lead">판매가 하나에 채널 수수료, 부가세, 반품, 광고비를 함께 넣으면 순마진과 손익분기 광고비를 바로 보여 줍니다. 적자 상품은 먼저 드러납니다.</p>
+          <p class="eyebrow" data-i18n="ix.heroEyebrow">온라인 셀러 마진 계산기</p>
+          <h1 id="hero-title" data-i18n="ix.heroTitle">수수료와 광고비를 빼고 나면, 상품마다 남는 돈</h1>
+          <p class="lead" data-i18n="ix.heroLead">판매가 하나에 채널 수수료, 부가세, 반품, 광고비를 함께 넣으면 순마진과 손익분기 광고비를 바로 보여 줍니다. 적자 상품은 먼저 드러납니다.</p>
           <div class="hero-cta">
-            <a class="btn btn-primary" href="#calc">내 상품 계산하기</a>
-            <button class="btn btn-ghost" type="button" id="btn-sample-hero">예시 상품으로 둘러보기</button>
+            <a class="btn btn-primary" href="#calc" data-i18n="ix.heroCta">내 상품 계산하기</a>
+            <button class="btn btn-ghost" type="button" id="btn-sample-hero" data-i18n="ix.heroSample">예시 상품으로 둘러보기</button>
           </div>
           <ul class="hero-points">
-            <li>스마트스토어, 쿠팡, 11번가, 자사몰 채널별 비교</li>
-            <li>손익분기 광고비와 ROAS, 광고비를 올렸을 때의 변화</li>
-            <li>상품 CSV 일괄 가져오기, 행마다 오류 위치 표시</li>
+            <li data-i18n="ix.point1">스마트스토어, 쿠팡, 11번가, 자사몰 채널별 비교</li>
+            <li data-i18n="ix.point2">손익분기 광고비와 ROAS, 광고비를 올렸을 때의 변화</li>
+            <li data-i18n="ix.point3">상품 CSV 일괄 가져오기, 행마다 오류 위치 표시</li>
           </ul>
-          <p class="hero-note">수수료 값은 예시이며 <strong>확인 필요</strong> 상태입니다 (기준일 2026-11, 공식 요율이 아닙니다). 데이터는 이 브라우저에만 저장됩니다.</p>
+          <p class="hero-note" data-i18n="ix.heroNote">수수료 값은 예시이며 확인 필요 상태입니다 (기준일 2026-11, 공식 요율이 아닙니다). 데이터는 이 브라우저에만 저장됩니다.</p>
         </div>
 
-        <figure class="hero-screen" aria-label="상품 상세 화면 예시">
+        <figure class="hero-screen" data-i18n-aria="ix.screenAria" aria-label="상품 상세 화면 예시">
           <div class="screen">
-            <div class="screen-bar" aria-hidden="true"><i></i><i></i><i></i><b>상품 상세 · 무선 충전 케이블 1m</b></div>
+            <div class="screen-bar" aria-hidden="true"><i></i><i></i><i></i><b data-i18n="ix.screenTitle">상품 상세 · 무선 충전 케이블 1m</b></div>
             <div class="screen-body">
-              <div class="screen-head"><span class="chip risk">위험</span><span>SKU CBL-1M</span><span>·</span><span>스마트스토어</span><span>·</span><span>월 300개</span></div>
+              <div class="screen-head"><span class="chip risk" data-i18n="health.risk">위험</span><span data-i18n="ix.sSku">SKU CBL-1M</span><span>·</span><span data-i18n="ix.sChannel">스마트스토어</span><span>·</span><span data-i18n="ix.sVolume">월 300개</span></div>
               <div class="screen-metrics">
-                <div class="m lead-m"><span>순마진 (주문 1건)</span><strong>680원</strong><small>광고비·반품 기대값 반영 후</small></div>
-                <div class="m"><span>마진율</span><strong>7.56%</strong><small>목표 15% 미달</small></div>
-                <div class="m"><span>손익분기 ROAS</span><strong>4.54배</strong><small>실제 ROAS가 이 값 이상이어야 이익</small></div>
-                <div class="m"><span>손익분기 광고비</span><strong>2,180원</strong><small>주문당 이 이하로 쓰면 이익 0 이상</small></div>
+                <div class="m lead-m"><span data-i18n="ui.m.net">순마진 (주문 1건)</span><strong data-i18n="ix.sNet">680원</strong><small data-i18n="ui.m.netHint">광고비·반품 기대값 반영 후</small></div>
+                <div class="m"><span data-i18n="ui.m.margin">마진율</span><strong>7.56%</strong><small data-i18n="ix.sMarginHint">목표 15% 미달</small></div>
+                <div class="m"><span data-i18n="ui.m.bep">손익분기 ROAS</span><strong data-i18n="ix.sBepRoas">4.54배</strong><small data-i18n="ui.m.bepHint">실제 ROAS가 이 값 이상이어야 광고 후 이익이 남습니다</small></div>
+                <div class="m"><span data-i18n="ui.m.bepAd">손익분기 광고비 (주문당)</span><strong data-i18n="ix.sBepAd">2,180원</strong><small data-i18n="ui.m.bepAdHint">이 금액 이하로 쓰면 이익 0 이상</small></div>
               </div>
               <div class="screen-chart">
                 <svg viewBox="0 0 640 300" role="img" aria-labelledby="hero-chart-title">
-                  <title id="hero-chart-title">주문당 광고비에 따른 순마진. 광고비 1,500원이면 순마진 680원, 손익분기 광고비 2,180원</title>
+                  <title id="hero-chart-title" data-i18n="ix.chartTitle">주문당 광고비에 따른 순마진. 광고비 1,500원이면 순마진 680원, 손익분기 광고비 2,180원</title>
                   <line x1="84" x2="612" y1="186.8" y2="186.8" class="be-zero"/><text x="76" y="190.8" text-anchor="end" class="be-tick">0</text>
-<line x1="84" x2="612" y1="112.1" y2="112.1" class="be-grid"/><text x="76" y="116.1" text-anchor="end" class="be-tick">1,000</text>
-<line x1="84" x2="612" y1="37.4" y2="37.4" class="be-grid"/><text x="76" y="41.4" text-anchor="end" class="be-tick">2,000</text>
-<text x="84.0" y="268" text-anchor="middle" class="be-tick">0</text>
-<text x="260.0" y="268" text-anchor="middle" class="be-tick">1,000</text>
-<text x="436.0" y="268" text-anchor="middle" class="be-tick">2,000</text>
-<text x="612.0" y="268" text-anchor="middle" class="be-tick">3,000</text>
-<text x="348" y="292" text-anchor="middle" class="be-axis">주문당 광고비 (원)</text>
-<line x1="84.0" y1="24.0" x2="612.0" y2="248.0" class="be-line"/>
-<circle cx="467.7" cy="186.8" r="6" class="be-bep"/>
-<text x="467.7" y="206.8" text-anchor="middle" class="be-label">손익분기 2,180원</text>
-<circle cx="348.0" cy="136.0" r="6" class="be-now"/>
-<text x="358.0" y="124.0" class="be-label">현재 1,500원 → 순마진 680원</text>
+                  <line x1="84" x2="612" y1="112.1" y2="112.1" class="be-grid"/><text x="76" y="116.1" text-anchor="end" class="be-tick">1,000</text>
+                  <line x1="84" x2="612" y1="37.4" y2="37.4" class="be-grid"/><text x="76" y="41.4" text-anchor="end" class="be-tick">2,000</text>
+                  <text x="84.0" y="268" text-anchor="middle" class="be-tick">0</text>
+                  <text x="260.0" y="268" text-anchor="middle" class="be-tick">1,000</text>
+                  <text x="436.0" y="268" text-anchor="middle" class="be-tick">2,000</text>
+                  <text x="612.0" y="268" text-anchor="middle" class="be-tick">3,000</text>
+                  <text x="348" y="292" text-anchor="middle" class="be-axis" data-i18n="ui.chart.xAxis">주문당 광고비 (원)</text>
+                  <line x1="84.0" y1="24.0" x2="612.0" y2="248.0" class="be-line"/>
+                  <circle cx="467.7" cy="186.8" r="6" class="be-bep"/>
+                  <text x="467.7" y="206.8" text-anchor="middle" class="be-label" data-i18n="ix.sBepLabel">손익분기 2,180원</text>
+                  <circle cx="348.0" cy="136.0" r="6" class="be-now"/>
+                  <text x="358.0" y="124.0" class="be-label" data-i18n="ix.sNowLabel">현재 1,500원 → 순마진 680원</text>
                 </svg>
               </div>
-              <table class="screen-table" aria-label="정산 내역 예시">
+              <table class="screen-table" data-i18n-aria="ix.sTableAria" aria-label="정산 내역 예시">
                 <tbody>
-                  <tr><td>할인 후 판매가</td><td>9,900원</td></tr>
-                  <tr><td>− 부가세 (확인 필요)</td><td>−900원</td></tr>
-                  <tr><td>− 판매 수수료 · 결제 수수료</td><td>−892원</td></tr>
-                  <tr><td>− 원가 · 포장비 · 배송비 부담액</td><td>−5,600원</td></tr>
-                  <tr><td>− 반품 기대 손실</td><td>−328원</td></tr>
-                  <tr><td>− 광고비 (주문당)</td><td>−1,500원</td></tr>
-                  <tr class="total"><td>= 순마진</td><td>680원</td></tr>
+                  <tr><td data-i18n="ix.sr1">할인 후 판매가</td><td>9,900원</td></tr>
+                  <tr><td data-i18n="ix.sr2">− 부가세 (확인 필요)</td><td>−900원</td></tr>
+                  <tr><td data-i18n="ix.sr3">− 판매 수수료 · 결제 수수료</td><td>−892원</td></tr>
+                  <tr><td data-i18n="ix.sr4">− 원가 · 포장비 · 배송비 부담액</td><td>−5,600원</td></tr>
+                  <tr><td data-i18n="ui.b.returnDrag">− 반품 기대 손실</td><td>−328원</td></tr>
+                  <tr><td data-i18n="ui.b.ad">− 광고비 (주문당)</td><td>−1,500원</td></tr>
+                  <tr class="total"><td data-i18n="ui.b.net">= 순마진</td><td>680원</td></tr>
                 </tbody>
               </table>
-              <p class="screen-caption">예시 화면입니다. 실제 계산 로직으로 얻은 값이며, 수수료는 예시 값입니다.</p>
+              <p class="screen-caption" data-i18n="ix.screenCaption">예시 화면입니다. 실제 계산 로직으로 얻은 값이며, 수수료는 예시 값입니다.</p>
             </div>
           </div>
         </figure>
@@ -104,47 +104,29 @@
     </section>
 
     <section class="section" id="features" aria-labelledby="features-title">
-      <div class="wrap">
+      <div class="wrap two-col">
         <div class="section-head">
-          <p class="eyebrow">기능</p>
-          <h2 id="features-title">광고를 켜기 전에 계산부터</h2>
-          <p>상품 한 개를 팔았을 때 남는 돈과, 광고비를 얼마까지 쓸 수 있는지를 먼저 봅니다.</p>
+          <h2 id="features-title" data-i18n="ix.featTitle">광고를 켜기 전에 계산부터</h2>
+          <p data-i18n="ix.featLead">상품 한 개를 팔았을 때 남는 돈과, 광고비를 얼마까지 쓸 수 있는지를 먼저 봅니다.</p>
         </div>
-        <div class="card-grid">
-          <article class="card">
-            <span class="no">01</span>
-            <h3>진짜 순마진</h3>
-            <p>판매 수수료, 결제 수수료, 고정 수수료, 원가, 포장비, 배송비 부담액, 반품 기대 손실을 모두 빼서 1건당 남는 돈을 보여 줍니다.</p>
-          </article>
-          <article class="card">
-            <span class="no">02</span>
-            <h3>손익분기 광고비와 ROAS</h3>
-            <p>광고비를 얼마까지 쓰면 0원이 되는지, 그때 ROAS가 몇 배인지 계산합니다. 차트로 광고비가 늘수록 순마진이 어떻게 줄어드는지도 봅니다.</p>
-          </article>
-          <article class="card">
-            <span class="no">03</span>
-            <h3>시나리오와 민감도</h3>
-            <p>기준, 프로모 할인, 광고 강화를 나란히 비교합니다. 판매가와 목표 ROAS 격자에서 적자가 나는 구간을 한눈에 찾습니다.</p>
-          </article>
-          <article class="card">
-            <span class="no">04</span>
-            <h3>채널별 월 손익</h3>
-            <p>월 판매량을 넣으면 채널별 매출, 수수료, 반품 손실, 광고비, 순이익을 한 표에 합산합니다. 합계와 개별 상품 값이 항상 맞습니다.</p>
-          </article>
-        </div>
+        <dl class="feature-list">
+          <div class="feature"><dt data-i18n="ix.f1t">진짜 순마진</dt><dd data-i18n="ix.f1d">판매 수수료, 결제 수수료, 고정 수수료, 원가, 포장비, 배송비 부담액, 반품 기대 손실을 모두 빼서 1건당 남는 돈을 보여 줍니다.</dd></div>
+          <div class="feature"><dt data-i18n="ix.f2t">손익분기 광고비와 ROAS</dt><dd data-i18n="ix.f2d">광고비를 얼마까지 쓰면 0원이 되는지, 그때 ROAS가 몇 배인지 계산합니다. 차트로 광고비가 늘수록 순마진이 어떻게 줄어드는지도 봅니다.</dd></div>
+          <div class="feature"><dt data-i18n="ix.f3t">시나리오와 민감도</dt><dd data-i18n="ix.f3d">기준, 프로모 할인, 광고 강화를 나란히 비교합니다. 판매가와 목표 ROAS 격자에서 적자가 나는 구간을 한눈에 찾습니다.</dd></div>
+          <div class="feature"><dt data-i18n="ix.f4t">채널별 월 손익</dt><dd data-i18n="ix.f4d">월 판매량을 넣으면 채널별 매출, 수수료, 반품 손실, 광고비, 순이익을 한 표에 합산합니다. 합계와 개별 상품 값이 항상 맞습니다.</dd></div>
+        </dl>
       </div>
     </section>
 
     <section class="section alt" id="how" aria-labelledby="how-title">
-      <div class="wrap">
+      <div class="wrap two-col">
         <div class="section-head">
-          <p class="eyebrow">사용법</p>
-          <h2 id="how-title">3단계면 충분합니다</h2>
+          <h2 id="how-title" data-i18n="ix.howTitle">3단계면 충분합니다</h2>
         </div>
         <ol class="steps">
-          <li><span class="step-no">1</span><div><h3>채널 수수료 확인</h3><p>예시 수수료가 들어 있습니다. 채널 정책을 확인해 수수료와 부가세 처리 방식을 맞추세요.</p></div></li>
-          <li><span class="step-no">2</span><div><h3>상품 입력 또는 CSV 가져오기</h3><p>상품을 하나씩 입력하거나 CSV를 붙여넣으세요. 잘못된 행은 줄 번호와 이유를 함께 알려 주고, 오류 목록을 CSV로 받을 수 있습니다.</p></div></li>
-          <li><span class="step-no">3</span><div><h3>적자와 광고 한계 확인</h3><p>상태(적자·위험·양호), 손익분기 광고비, 시나리오 비교를 보고 판매가와 광고비를 조정하세요.</p></div></li>
+          <li><h3 data-i18n="ix.s1t">채널 수수료 확인</h3><p data-i18n="ix.s1d">예시 수수료가 들어 있습니다. 채널 정책을 확인해 수수료와 부가세 처리 방식을 맞추세요.</p></li>
+          <li><h3 data-i18n="ix.s2t">상품 입력 또는 CSV 가져오기</h3><p data-i18n="ix.s2d">상품을 하나씩 입력하거나 CSV를 붙여넣으세요. 잘못된 행은 줄 번호와 이유를 함께 알려 주고, 오류 목록을 CSV로 받을 수 있습니다.</p></li>
+          <li><h3 data-i18n="ix.s3t">적자와 광고 한계 확인</h3><p data-i18n="ix.s3d">상태(적자·위험·양호), 손익분기 광고비, 시나리오 비교를 보고 판매가와 광고비를 조정하세요.</p></li>
         </ol>
       </div>
     </section>
@@ -152,20 +134,20 @@
     <section class="section" id="rules" aria-labelledby="rules-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow">계산 규칙</p>
-          <h2 id="rules-title">어떻게 계산하는지 숨기지 않습니다</h2>
-          <p>모든 금액은 원 단위 정수이며, 0.5는 절대값 기준으로 올립니다. 아래 규칙은 코드(logic.js)와 README에 그대로 적혀 있습니다.</p>
+          <p class="eyebrow" data-i18n="ix.rulesEyebrow">계산 규칙</p>
+          <h2 id="rules-title" data-i18n="ix.rulesTitle">어떻게 계산하는지 숨기지 않습니다</h2>
+          <p data-i18n="ix.rulesLead">모든 금액은 원 단위 정수이며, 0.5는 절대값 기준으로 올립니다. 아래 규칙은 코드(logic.js)와 README에 그대로 적혀 있습니다.</p>
         </div>
         <div class="rules-wrap">
           <table class="rules-table">
-            <caption class="sr-only">계산 규칙 요약</caption>
+            <caption class="sr-only" data-i18n="ix.rulesCaption">계산 규칙 요약</caption>
             <tbody>
-              <tr><th scope="row">할인 후 판매가</th><td>판매가 × (100 − 할인율) ÷ 100, 반올림한 뒤 쿠폰을 뺍니다. 음수는 0입니다.</td></tr>
-              <tr><th scope="row">부가세 (확인 필요)</th><td>부가세 분리를 켜면 판매가의 10/110을 떼고 매출로 봅니다. 면세나 간이과세라면 끄세요.</td></tr>
-              <tr><th scope="row">수수료</th><td>판매 수수료와 결제 수수료는 할인 후 판매가에 각 %를 곱합니다. 고정 수수료는 주문당 금액입니다.</td></tr>
-              <tr><th scope="row">반품 반영</th><td>반품 1건이면 원가는 재입고, 매출은 환불되고, 수수료·포장·배송비와 반품 1건당 추가 손실은 남는다고 봅니다. 반품률만큼 가중 평균합니다.</td></tr>
-              <tr><th scope="row">손익분기 ROAS</th><td>할인 후 판매가 ÷ 반품을 반영한 광고 전 이익입니다. 광고 전 이익이 0 이하이면 광고로 맞출 수 없습니다.</td></tr>
-              <tr><th scope="row">순마진과 마진율</th><td>순마진 = 광고 전 이익 − 주문당 광고비. 마진율 = 순마진 ÷ 매출(부가세 제외) × 100.</td></tr>
+              <tr><th scope="row" data-i18n="ix.rule1k">할인 후 판매가</th><td data-i18n="ix.rule1v">판매가 × (100 − 할인율) ÷ 100, 반올림한 뒤 쿠폰을 뺍니다. 음수는 0입니다.</td></tr>
+              <tr><th scope="row" data-i18n="ix.rule2k">부가세 (확인 필요)</th><td data-i18n="ix.rule2v">부가세 분리를 켜면 판매가의 10/110을 떼고 매출로 봅니다. 면세나 간이과세라면 끄세요.</td></tr>
+              <tr><th scope="row" data-i18n="ix.rule3k">수수료</th><td data-i18n="ix.rule3v">판매 수수료와 결제 수수료는 할인 후 판매가에 각 %를 곱합니다. 고정 수수료는 주문당 금액입니다.</td></tr>
+              <tr><th scope="row" data-i18n="ix.rule4k">반품 반영</th><td data-i18n="ix.rule4v">반품 1건이면 원가는 재입고, 매출은 환불되고, 수수료·포장·배송비와 반품 1건당 추가 손실은 남는다고 봅니다. 반품률만큼 가중 평균합니다.</td></tr>
+              <tr><th scope="row" data-i18n="ix.rule5k">손익분기 ROAS</th><td data-i18n="ix.rule5v">할인 후 판매가 ÷ 반품을 반영한 광고 전 이익입니다. 광고 전 이익이 0 이하이면 광고로 맞출 수 없습니다.</td></tr>
+              <tr><th scope="row" data-i18n="ix.rule6k">순마진과 마진율</th><td data-i18n="ix.rule6v">순마진 = 광고 전 이익 − 주문당 광고비. 마진율 = 순마진 ÷ 매출(부가세 제외) × 100.</td></tr>
             </tbody>
           </table>
         </div>
@@ -175,147 +157,147 @@
     <section class="section" id="calc" aria-labelledby="calc-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="eyebrow">계산기</p>
-          <h2 id="calc-title">상품별 마진 계산</h2>
-          <p>상품을 입력하면 순마진, 손익분기 광고비, 시나리오, 민감도 표가 바로 바뀝니다.</p>
+          <p class="eyebrow" data-i18n="ix.calcEyebrow">계산기</p>
+          <h2 id="calc-title" data-i18n="ix.calcTitle">상품별 마진 계산</h2>
+          <p data-i18n="ix.calcLead">상품을 입력하면 순마진, 손익분기 광고비, 시나리오, 민감도 표가 바로 바뀝니다.</p>
         </div>
-        <p class="disclaimer" role="note">계산 결과는 참고용 추정치이며 세무·법률·재무 자문이 아닙니다. 수수료와 세율은 바뀔 수 있으니 채널 정책과 세무 기준을 직접 확인하세요.</p>
+        <p class="disclaimer" role="note" data-i18n="ix.disclaimer">계산 결과는 참고용 추정치이며 세무·법률·재무 자문이 아닙니다. 수수료와 세율은 바뀔 수 있으니 채널 정책과 세무 기준을 직접 확인하세요.</p>
         <p class="basis" id="basis-line"></p>
 
         <div class="panel" id="panel-dash" aria-labelledby="dash-title">
           <div class="panel-head">
-            <h3 id="dash-title">요약</h3>
+            <h3 id="dash-title" data-i18n="ix.dashTitle">요약</h3>
             <div class="inline-actions">
-              <label class="inline-field">목표 마진율 (%)
+              <label class="inline-field"><span data-i18n="ix.targetLabel">목표 마진율 (%)</span>
                 <input id="target-margin" type="text" inputmode="decimal" value="15" autocomplete="off" aria-describedby="target-err">
               </label>
-              <button class="btn btn-ghost btn-sm" type="button" id="btn-target-save">적용</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="btn-target-save" data-i18n="ix.apply">적용</button>
             </div>
           </div>
           <p class="field-error" id="target-err" role="alert"></p>
           <dl class="kpis" id="kpis"></dl>
           <div id="warnings" class="warnings" aria-live="polite"></div>
           <div id="worst-wrap" hidden>
-            <h4>순마진이 가장 낮은 상품 5개</h4>
+            <h4 data-i18n="ix.worstTitle">순마진이 가장 낮은 상품 5개</h4>
             <ol class="worst-list" id="worst-list"></ol>
           </div>
         </div>
 
         <div class="panel" id="panel-products" aria-labelledby="products-title">
           <div class="panel-head">
-            <h3 id="products-title">상품 목록</h3>
+            <h3 id="products-title" data-i18n="ix.productsTitle">상품 목록</h3>
             <div class="inline-actions">
-              <button class="btn btn-ghost btn-sm" type="button" id="btn-sample">예시 상품 불러오기</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="btn-sample" data-i18n="ix.loadSamples">예시 상품 불러오기</button>
             </div>
           </div>
 
           <form id="product-form" class="form-grid" novalidate aria-labelledby="form-title">
-            <h4 id="form-title" class="form-title">상품 추가</h4>
+            <h4 id="form-title" class="form-title" data-i18n="ui.pf.addTitle">상품 추가</h4>
             <input type="hidden" id="pf-id">
-            <label class="field">상품명 <span class="req" aria-hidden="true">*</span>
+            <label class="field"><span data-i18n="f.productName">상품명</span> <span class="req" aria-hidden="true">*</span>
               <input id="pf-name" name="name" maxlength="80" autocomplete="off" required></label>
             <label class="field">SKU
               <input id="pf-sku" name="sku" maxlength="40" autocomplete="off"></label>
-            <label class="field">채널
+            <label class="field"><span data-i18n="f.channelName">채널</span>
               <select id="pf-channel" name="channelId"></select></label>
-            <label class="field">판매가 (원) <span class="req" aria-hidden="true">*</span>
+            <label class="field"><span data-i18n="ix.lPrice">판매가 (원)</span> <span class="req" aria-hidden="true">*</span>
               <input id="pf-price" name="price" inputmode="numeric" autocomplete="off" required></label>
-            <label class="field">원가 (원, 부가세 제외)
+            <label class="field"><span data-i18n="ix.lCogs">원가 (원, 부가세 제외)</span>
               <input id="pf-cogs" name="cogs" inputmode="numeric" autocomplete="off"></label>
-            <label class="field">포장비 (원)
+            <label class="field"><span data-i18n="ix.lPackaging">포장비 (원)</span>
               <input id="pf-packaging" name="packaging" inputmode="numeric" autocomplete="off"></label>
-            <label class="field">배송비 부담액 (원)
+            <label class="field"><span data-i18n="f.shipping">배송비 부담액</span> (<span data-i18n="unit.won">원</span>)
               <input id="pf-shipping" name="shipping" inputmode="numeric" autocomplete="off"></label>
-            <label class="field">반품률 (%)
+            <label class="field"><span data-i18n="ix.lReturnRate">반품률 (%)</span>
               <input id="pf-returnRate" name="returnRate" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">반품 1건당 추가 손실 (원)
+            <label class="field"><span data-i18n="ix.lReturnLoss">반품 1건당 추가 손실 (원)</span>
               <input id="pf-returnLoss" name="returnLoss" inputmode="numeric" autocomplete="off"></label>
             <fieldset class="field field-wide">
-              <legend>광고비 입력 방식</legend>
-              <label class="radio"><input type="radio" name="adMode" value="perOrder" checked> 주문당 광고비 (원)</label>
-              <label class="radio"><input type="radio" name="adMode" value="roas"> 목표 ROAS (배)</label>
+              <legend data-i18n="ix.lAdMode">광고비 입력 방식</legend>
+              <label class="radio"><input type="radio" name="adMode" value="perOrder" checked> <span data-i18n="ix.lAdPerOrderRadio">주문당 광고비 (원)</span></label>
+              <label class="radio"><input type="radio" name="adMode" value="roas"> <span data-i18n="ix.lRoasRadio">목표 ROAS (배)</span></label>
             </fieldset>
-            <label class="field" id="wrap-adPerOrder">주문당 광고비 (원)
+            <label class="field" id="wrap-adPerOrder"><span data-i18n="f.adPerOrder">주문당 광고비</span> (<span data-i18n="unit.won">원</span>)
               <input id="pf-adPerOrder" name="adPerOrder" inputmode="numeric" autocomplete="off"></label>
-            <label class="field" id="wrap-roasTarget" hidden>목표 ROAS (배)
+            <label class="field" id="wrap-roasTarget" hidden><span data-i18n="ix.lRoas">목표 ROAS (배)</span>
               <input id="pf-roasTarget" name="roasTarget" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">월 판매량 (개)
+            <label class="field"><span data-i18n="ix.lVolume">월 판매량 (개)</span>
               <input id="pf-volume" name="volume" inputmode="numeric" autocomplete="off"></label>
             <div class="form-actions field-wide">
-              <button class="btn btn-primary" type="submit" id="pf-submit">상품 저장</button>
-              <button class="btn btn-ghost" type="button" id="pf-cancel" hidden>수정 취소</button>
+              <button class="btn btn-primary" type="submit" id="pf-submit" data-i18n="ui.pf.save">상품 저장</button>
+              <button class="btn btn-ghost" type="button" id="pf-cancel" hidden data-i18n="ix.cancelEdit">수정 취소</button>
               <p class="form-msg" id="pf-msg" role="status" aria-live="polite"></p>
             </div>
             <div class="field-wide form-errors" id="pf-errors" role="alert"></div>
           </form>
 
           <div class="toolbar">
-            <label class="search">상품 검색
-              <input id="filter-text" type="search" placeholder="상품명 또는 SKU" autocomplete="off"></label>
-            <label class="check"><input type="checkbox" id="filter-loss"> 적자만 보기</label>
+            <label class="search"><span data-i18n="ix.search">상품 검색</span>
+              <input id="filter-text" type="search" data-i18n-ph="ix.searchPh" placeholder="상품명 또는 SKU" autocomplete="off"></label>
+            <label class="check"><input type="checkbox" id="filter-loss"> <span data-i18n="ix.lossOnly">적자만 보기</span></label>
           </div>
-          <div class="table-wrap" tabindex="0" aria-label="상품 표 (가로 스크롤 가능)">
+          <div class="table-wrap" tabindex="0" data-i18n-aria="ix.tableAria" aria-label="상품 표 (가로 스크롤 가능)">
             <table class="data" id="product-table">
-              <caption class="sr-only">상품별 순마진 계산 결과. 열 머리글 버튼으로 정렬합니다.</caption>
+              <caption class="sr-only" data-i18n="ix.tableCaption">상품별 순마진 계산 결과. 열 머리글 버튼으로 정렬합니다.</caption>
               <thead>
                 <tr>
-                  <th scope="col"><button type="button" class="sort" data-sort="name">상품</button></th>
-                  <th scope="col" class="hide-sm">채널</th>
-                  <th scope="col" class="num"><button type="button" class="sort" data-sort="price">판매가</button></th>
-                  <th scope="col" class="num"><button type="button" class="sort" data-sort="net">순마진</button></th>
-                  <th scope="col" class="num"><button type="button" class="sort" data-sort="margin">마진율</button></th>
-                  <th scope="col" class="num"><button type="button" class="sort" data-sort="bepRoas">손익분기 ROAS</button></th>
-                  <th scope="col">상태</th>
-                  <th scope="col"><span class="sr-only">작업</span></th>
+                  <th scope="col"><button type="button" class="sort" data-sort="name" data-i18n="ix.thProduct">상품</button></th>
+                  <th scope="col" class="hide-sm" data-i18n="ui.th.channel">채널</th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="price" data-i18n="f.price">판매가</button></th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="net" data-i18n="ui.th.net">순마진</button></th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="margin" data-i18n="ui.th.margin">마진율</button></th>
+                  <th scope="col" class="num"><button type="button" class="sort" data-sort="bepRoas" data-i18n="ui.th.bep">손익분기 ROAS</button></th>
+                  <th scope="col" data-i18n="ui.th.status">상태</th>
+                  <th scope="col"><span class="sr-only" data-i18n="ix.thAction">작업</span></th>
                 </tr>
               </thead>
               <tbody id="product-body"></tbody>
             </table>
           </div>
-          <p class="empty" id="product-empty" hidden>아직 상품이 없습니다. 위 양식으로 추가하거나 예시 상품을 불러오세요.</p>
+          <p class="empty" id="product-empty" hidden data-i18n="ui.productEmpty">아직 상품이 없습니다. 위 양식으로 추가하거나 예시 상품을 불러오세요.</p>
         </div>
 
         <div class="panel" id="panel-detail" aria-labelledby="detail-title" hidden>
           <div class="panel-head">
-            <h3 id="detail-title">상품 상세</h3>
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-detail-close">닫기</button>
+            <h3 id="detail-title" data-i18n="ix.detailTitle">상품 상세</h3>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-detail-close" data-i18n="common.close">닫기</button>
           </div>
           <div id="detail-body"></div>
         </div>
 
         <div class="panel" id="panel-pnl" aria-labelledby="pnl-title">
           <div class="panel-head">
-            <h3 id="pnl-title">월 손익 요약 (채널별)</h3>
+            <h3 id="pnl-title" data-i18n="ix.pnlTitle">월 손익 요약 (채널별)</h3>
           </div>
-          <p class="basis">상품 1개당 금액 × 월 판매량을 채널별로 합산합니다. 월 판매량을 입력한 상품만 반영되며, 수수료는 예시 값이므로 확인 필요합니다.</p>
-          <p class="empty" id="pnl-empty" hidden>상품과 월 판매량을 입력하면 채널별 월 손익이 표시됩니다.</p>
+          <p class="basis" data-i18n="ix.pnlLead">상품 1개당 금액 × 월 판매량을 채널별로 합산합니다. 월 판매량을 입력한 상품만 반영되며, 수수료는 예시 값이므로 확인 필요합니다.</p>
+          <p class="empty" id="pnl-empty" hidden data-i18n="ix.pnlEmpty">상품과 월 판매량을 입력하면 채널별 월 손익이 표시됩니다.</p>
           <div class="table-wrap" id="pnl-wrap" tabindex="0">
             <table class="data" id="pnl-table">
-              <caption class="sr-only">채널별 월 손익. 매출은 부가세 제외, 반품 손실은 기대값입니다.</caption>
+              <caption class="sr-only" data-i18n="ix.pnlCaption">채널별 월 손익. 매출은 부가세 제외, 반품 손실은 기대값입니다.</caption>
               <thead><tr>
-                <th scope="col">채널</th><th scope="col" class="num">상품 수</th><th scope="col" class="num">월 판매량</th>
-                <th scope="col" class="num">매출 (부가세 제외)</th><th scope="col" class="num">원가</th><th scope="col" class="num">포장·배송</th>
-                <th scope="col" class="num">수수료</th><th scope="col" class="num">반품 손실</th><th scope="col" class="num">광고비</th>
-                <th scope="col" class="num">월 순이익</th><th scope="col" class="num">마진율</th>
+                <th scope="col" data-i18n="ui.th.channel">채널</th><th scope="col" class="num" data-i18n="ix.pnlCount">상품 수</th><th scope="col" class="num" data-i18n="ix.pnlVolume">월 판매량</th>
+                <th scope="col" class="num" data-i18n="ix.pnlRevenue">매출 (부가세 제외)</th><th scope="col" class="num" data-i18n="ui.b.cogs">원가</th><th scope="col" class="num" data-i18n="ix.pnlHandling">포장·배송</th>
+                <th scope="col" class="num" data-i18n="ix.pnlFees">수수료</th><th scope="col" class="num" data-i18n="ix.pnlReturn">반품 손실</th><th scope="col" class="num" data-i18n="ui.b.ad">광고비</th>
+                <th scope="col" class="num" data-i18n="ix.pnlNet">월 순이익</th><th scope="col" class="num" data-i18n="ui.th.margin">마진율</th>
               </tr></thead>
               <tbody id="pnl-body"></tbody>
             </table>
           </div>
 
           <div class="subpanel" id="target-profit">
-            <h4>목표 이익 달성 판매량</h4>
-            <p class="basis">월 목표 순이익을 입력하면, 상품과 채널마다 주문 1건당 순이익으로 나눈 필요 판매 건수를 보여줍니다. 할인, 광고비, 반품 가정은 현재 값을 그대로 씁니다.</p>
-            <label class="field">월 목표 순이익 (원)
+            <h4 data-i18n="ix.tpTitle">목표 이익 달성 판매량</h4>
+            <p class="basis" data-i18n="ix.tpLead">월 목표 순이익을 입력하면, 상품과 채널마다 주문 1건당 순이익으로 나눈 필요 판매 건수를 보여줍니다. 할인, 광고비, 반품 가정은 현재 값을 그대로 씁니다.</p>
+            <label class="field"><span data-i18n="f.monthlyTarget">월 목표 순이익 (원)</span>
               <input id="tp-target" inputmode="numeric" autocomplete="off" value="1000000" aria-describedby="tp-err">
             </label>
             <p class="field-error" id="tp-err" role="alert"></p>
-            <p class="empty" id="tp-empty" hidden>계산할 상품이 없습니다.</p>
-            <div class="table-wrap" id="tp-wrap" tabindex="0" role="region" aria-label="목표 이익 달성 판매량 표">
+            <p class="empty" id="tp-empty" hidden data-i18n="ix.tpEmpty">계산할 상품이 없습니다.</p>
+            <div class="table-wrap" id="tp-wrap" tabindex="0" role="region" data-i18n-aria="ix.tpAria" aria-label="목표 이익 달성 판매량 표">
               <table class="data" id="tp-table">
-                <caption class="sr-only">상품과 채널별 목표 이익 달성에 필요한 월 판매 건수</caption>
+                <caption class="sr-only" data-i18n="ix.tpCaption">상품과 채널별 목표 이익 달성에 필요한 월 판매 건수</caption>
                 <thead><tr>
-                  <th scope="col">상품</th><th scope="col">채널</th><th scope="col" class="num">주문당 순이익</th>
-                  <th scope="col" class="num">필요 판매량</th><th scope="col" class="num">현재 월 판매량</th>
+                  <th scope="col" data-i18n="ix.thProductPlain">상품</th><th scope="col" data-i18n="ui.th.channel">채널</th><th scope="col" class="num" data-i18n="ix.tpPerOrder">주문당 순이익</th>
+                  <th scope="col" class="num" data-i18n="ix.tpNeed">필요 판매량</th><th scope="col" class="num" data-i18n="ix.tpCurrent">현재 월 판매량</th>
                 </tr></thead>
                 <tbody id="tp-body"></tbody>
               </table>
@@ -325,29 +307,29 @@
 
         <div class="panel" id="panel-channels" aria-labelledby="channels-title">
           <div class="panel-head">
-            <h3 id="channels-title">채널 수수료</h3>
+            <h3 id="channels-title" data-i18n="ix.chTitle">채널 수수료</h3>
           </div>
           <p class="basis" id="channel-basis"></p>
           <div class="table-wrap" tabindex="0">
             <table class="data">
-              <caption class="sr-only">채널별 수수료 설정. 값을 바꾸고 저장을 누르세요.</caption>
+              <caption class="sr-only" data-i18n="ix.chCaption">채널별 수수료 설정. 값을 바꾸고 저장을 누르세요.</caption>
               <thead><tr>
-                <th scope="col">채널</th><th scope="col" class="num">판매 수수료 %</th><th scope="col" class="num">결제/PG %</th>
-                <th scope="col" class="num">고정 수수료 (원/주문)</th><th scope="col">부가세 분리</th><th scope="col"><span class="sr-only">작업</span></th>
+                <th scope="col" data-i18n="ui.th.channel">채널</th><th scope="col" class="num" data-i18n="ix.chSale">판매 수수료 %</th><th scope="col" class="num" data-i18n="ix.chPg">결제/PG %</th>
+                <th scope="col" class="num" data-i18n="ix.chFixed">고정 수수료 (원/주문)</th><th scope="col" data-i18n="ix.chVat">부가세 분리</th><th scope="col"><span class="sr-only" data-i18n="ix.thAction">작업</span></th>
               </tr></thead>
               <tbody id="channel-body"></tbody>
             </table>
           </div>
           <form id="channel-form" class="form-grid compact" novalidate>
-            <h4 class="form-title">채널 추가</h4>
-            <label class="field">채널 이름 <input id="cf-name" maxlength="40" autocomplete="off"></label>
-            <label class="field">판매 수수료 (%) <input id="cf-sale" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">결제/PG 수수료 (%) <input id="cf-pg" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">고정 수수료 (원/주문) <input id="cf-fixed" inputmode="numeric" autocomplete="off"></label>
-            <label class="check field-wide"><input type="checkbox" id="cf-vat" checked> 부가세 분리 (판매가에서 10%를 떼고 계산 · 확인 필요)</label>
+            <h4 class="form-title" data-i18n="ix.chAddTitle">채널 추가</h4>
+            <label class="field"><span data-i18n="f.channelName">채널 이름</span> <input id="cf-name" maxlength="40" autocomplete="off"></label>
+            <label class="field"><span data-i18n="f.saleFee">판매 수수료</span> (%) <input id="cf-sale" inputmode="decimal" autocomplete="off"></label>
+            <label class="field"><span data-i18n="f.pgFee">결제/PG 수수료</span> (%) <input id="cf-pg" inputmode="decimal" autocomplete="off"></label>
+            <label class="field"><span data-i18n="ix.chFixedAdd">고정 수수료 (원/주문)</span> <input id="cf-fixed" inputmode="numeric" autocomplete="off"></label>
+            <label class="check field-wide"><input type="checkbox" id="cf-vat" checked> <span data-i18n="ix.chVatAdd">부가세 분리 (판매가에서 10%를 떼고 계산 · 확인 필요)</span></label>
             <div class="form-actions field-wide">
-              <button class="btn btn-primary" type="submit">채널 추가</button>
-              <button class="btn btn-ghost" type="button" id="btn-channel-reset">예시 수수료로 되돌리기</button>
+              <button class="btn btn-primary" type="submit" data-i18n="ix.chAddBtn">채널 추가</button>
+              <button class="btn btn-ghost" type="button" id="btn-channel-reset" data-i18n="ix.chReset">예시 수수료로 되돌리기</button>
               <p class="form-msg" id="cf-msg" role="status" aria-live="polite"></p>
             </div>
             <div class="field-wide form-errors" id="cf-errors" role="alert"></div>
@@ -356,56 +338,56 @@
 
         <div class="panel" id="panel-csv" aria-labelledby="csv-title">
           <div class="panel-head">
-            <h3 id="csv-title">CSV 가져오기 · 내보내기</h3>
+            <h3 id="csv-title" data-i18n="ix.csvTitle">CSV 가져오기 · 내보내기</h3>
             <div class="inline-actions">
-              <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-template">양식 내려받기</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-template" data-i18n="ix.csvTemplate">양식 내려받기</button>
             </div>
           </div>
-          <p class="basis">필수 열: 상품명, 판매가. 선택 열: SKU, 채널, 원가, 포장비, 배송비부담액, 반품률, 반품손실, 광고비 또는 목표ROAS, 월판매량. 채널은 이름이나 id로 적으며 비우면 첫 번째 채널을 씁니다.</p>
-          <label class="field field-wide">CSV 붙여넣기
-            <textarea id="csv-text" rows="5" spellcheck="false" placeholder="상품명,SKU,채널,판매가,원가&#10;무선 충전 케이블,CBL-1M,스마트스토어,9900,2800"></textarea>
+          <p class="basis" data-i18n="ix.csvLead">필수 열: 상품명, 판매가. 선택 열: SKU, 채널, 원가, 포장비, 배송비부담액, 반품률, 반품손실, 광고비 또는 목표ROAS, 월판매량. 채널은 이름이나 id로 적으며 비우면 첫 번째 채널을 씁니다. 열 이름은 한국어 형식과 영문 형식을 모두 받습니다.</p>
+          <label class="field field-wide"><span data-i18n="ix.csvPaste">CSV 붙여넣기</span>
+            <textarea id="csv-text" rows="5" spellcheck="false" data-i18n-ph="ix.csvPh" placeholder="상품명,SKU,채널,판매가,원가&#10;무선 충전 케이블,CBL-1M,스마트스토어,9900,2800"></textarea>
           </label>
           <div class="inline-actions">
-            <label class="file-btn">파일 선택 (.csv)
+            <label class="file-btn"><span data-i18n="ix.csvPick">파일 선택 (.csv)</span>
               <input type="file" id="csv-file" accept=".csv,text/csv">
             </label>
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-preview">미리보기 검사</button>
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-errors" disabled>오류 목록 내려받기 (CSV)</button>
-            <button class="btn btn-primary btn-sm" type="button" id="btn-csv-import" disabled>검사 통과 행 추가</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-preview" data-i18n="ix.csvCheck">미리보기 검사</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-errors" disabled data-i18n="ix.csvErrList">오류 목록 내려받기 (CSV)</button>
+            <button class="btn btn-primary btn-sm" type="button" id="btn-csv-import" disabled data-i18n="ix.csvImport">검사 통과 행 추가</button>
           </div>
           <p class="form-msg" id="csv-msg" role="status" aria-live="polite"></p>
           <div id="csv-errors"></div>
           <div class="inline-actions">
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-export-products">상품 CSV 내보내기</button>
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-export-results">계산 결과 CSV 내보내기</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-export-products" data-i18n="ix.expProducts">상품 CSV 내보내기</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-export-results" data-i18n="ix.expResults">계산 결과 CSV 내보내기</button>
           </div>
         </div>
 
         <div class="panel" id="panel-ai" aria-labelledby="ai-title">
           <div class="panel-head">
-            <h3 id="ai-title">AI 개선안</h3>
-            <span class="badge">선택 기능</span>
+            <h3 id="ai-title" data-i18n="ix.aiTitle">AI 개선안</h3>
+            <span class="badge" data-i18n="ix.aiOptional">선택 기능</span>
           </div>
-          <p class="basis">순마진이 가장 낮은 상품 5개의 <strong>숫자 요약</strong>만 보냅니다. 상품명과 SKU는 기본으로 보내지 않습니다. 버튼을 누를 때만 전송합니다.</p>
+          <p class="basis" data-i18n="ix.aiLead">순마진이 가장 낮은 상품 5개의 <strong>숫자 요약</strong>만 보냅니다. 상품명과 SKU는 기본으로 보내지 않습니다. 버튼을 누를 때만 전송합니다.</p>
           <form id="ai-key-form" class="form-grid compact" novalidate>
-            <label class="field field-wide">내 Anthropic API 키
+            <label class="field field-wide"><span data-i18n="ix.aiKey">내 Anthropic API 키</span>
               <input id="ai-key" type="password" autocomplete="off" spellcheck="false" aria-describedby="ai-key-note">
             </label>
-            <p class="field-wide small" id="ai-key-note">브라우저의 localStorage에 저장되며 개발자 도구에서 보일 수 있습니다. 공용 컴퓨터에서는 저장하지 마세요.</p>
+            <p class="field-wide small" id="ai-key-note" data-i18n="ix.aiKeyNote">브라우저의 localStorage에 저장되며 개발자 도구에서 보일 수 있습니다. 공용 컴퓨터에서는 저장하지 마세요.</p>
             <div class="form-actions field-wide">
-              <button class="btn btn-ghost btn-sm" type="submit">키 저장</button>
-              <button class="btn btn-ghost btn-sm" type="button" id="ai-key-remove">키 삭제</button>
+              <button class="btn btn-ghost btn-sm" type="submit" data-i18n="ui.ai.keySavedBtn">키 저장</button>
+              <button class="btn btn-ghost btn-sm" type="button" id="ai-key-remove" data-i18n="ix.aiKeyRemove">키 삭제</button>
               <p class="form-msg" id="ai-key-msg" role="status" aria-live="polite"></p>
             </div>
           </form>
-          <label class="check"><input type="checkbox" id="ai-names"> 상품명을 함께 보내기 (기본: 보내지 않음)</label>
+          <label class="check"><input type="checkbox" id="ai-names"> <span data-i18n="ix.aiNames">상품명을 함께 보내기 (기본: 보내지 않음)</span></label>
           <details class="payload">
-            <summary>전송될 내용 미리 보기</summary>
+            <summary data-i18n="ix.aiPreview">전송될 내용 미리 보기</summary>
             <pre id="ai-payload" class="pre"></pre>
           </details>
           <div class="inline-actions">
-            <button class="btn btn-primary" type="button" id="ai-run">AI로 분석 (내 키 사용)</button>
-            <button class="btn btn-ghost" type="button" id="ai-local">키 없이 규칙 기반 분석</button>
+            <button class="btn btn-primary" type="button" id="ai-run" data-i18n="ix.aiRun">AI로 분석 (내 키 사용)</button>
+            <button class="btn btn-ghost" type="button" id="ai-local" data-i18n="ix.aiLocal">키 없이 규칙 기반 분석</button>
           </div>
           <p class="form-msg" id="ai-msg" role="status" aria-live="polite"></p>
           <div id="ai-output" class="ai-output" aria-live="polite"></div>
@@ -413,15 +395,15 @@
 
         <div class="panel" id="panel-backup" aria-labelledby="backup-title">
           <div class="panel-head">
-            <h3 id="backup-title">백업 · 복원</h3>
+            <h3 id="backup-title" data-i18n="ix.bkTitle">백업 · 복원</h3>
           </div>
-          <p class="basis">데이터는 이 브라우저에만 있습니다. 기기를 바꾸거나 기록을 지우기 전에 JSON으로 내려받아 두세요.</p>
+          <p class="basis" data-i18n="ix.bkLead">데이터는 이 브라우저에만 있습니다. 기기를 바꾸거나 기록을 지우기 전에 JSON으로 내려받아 두세요.</p>
           <div class="inline-actions">
-            <button class="btn btn-primary btn-sm" type="button" id="btn-json-export">JSON 백업 내려받기</button>
-            <label class="file-btn">JSON 백업 가져오기 (덮어쓰기)
+            <button class="btn btn-primary btn-sm" type="button" id="btn-json-export" data-i18n="ix.bkExport">JSON 백업 내려받기</button>
+            <label class="file-btn"><span data-i18n="ix.bkImport">JSON 백업 가져오기 (덮어쓰기)</span>
               <input type="file" id="json-file" accept=".json,application/json">
             </label>
-            <button class="btn btn-danger btn-sm" type="button" id="btn-clear">전체 데이터 삭제</button>
+            <button class="btn btn-danger btn-sm" type="button" id="btn-clear" data-i18n="ix.bkClear">전체 데이터 삭제</button>
           </div>
           <p class="form-msg" id="backup-msg" role="status" aria-live="polite"></p>
         </div>
@@ -432,14 +414,16 @@
       <div class="wrap narrow">
         <div class="section-head">
           <p class="eyebrow">FAQ</p>
-          <h2 id="faq-title">자주 묻는 질문</h2>
+          <h2 id="faq-title" data-i18n="ix.faqTitle">자주 묻는 질문</h2>
         </div>
-        <details class="faq"><summary>부가세는 어떻게 계산하나요?</summary><p>부가세 분리를 켜면 판매가에서 10%를 역산해 뺀 금액을 매출로 봅니다. 이 10%는 일반과세 기준 가정이며 확인 필요 항목입니다. 원가와 포장비는 부가세를 뺀 금액으로 입력한다고 가정합니다. 면세 또는 간이과세 상황이라면 분리를 끄고 판매가 전액을 매출로 보세요.</p></details>
-        <details class="faq"><summary>손익분기 ROAS는 무엇인가요?</summary><p>할인 후 판매가를 광고 전 순이익으로 나눈 값입니다. 주문 한 건당 쓸 수 있는 최대 광고비(손익분기 광고비)를 ROAS로 바꾼 것이라서, 실제 ROAS가 이 값보다 낮으면 광고비가 이익을 넘어섭니다.</p></details>
-        <details class="faq"><summary>반품률은 어떻게 반영되나요?</summary><p>반품된 주문은 매출이 환불되고, 원가는 재입고된다고 봅니다. 수수료와 포장·배송비는 돌려받지 못한다고 보며, 반품 1건당 추가 손실(회수·폐기 등)을 따로 더합니다. 기대 순마진은 반품률만큼 가중 평균한 값입니다.</p></details>
-        <details class="faq"><summary>시나리오 설정은 어디에 저장되나요?</summary><p>프로모 할인율과 광고 강화 배율은 이 브라우저에 저장되어 다음 방문에도 유지됩니다. 백업 JSON에도 함께 들어갑니다. 값은 0~50%와 1~10배 범위에서만 받습니다.</p></details>
-        <details class="faq"><summary>내 데이터는 어디에 저장되나요?</summary><p>이 브라우저의 localStorage에만 저장되며 서버로 보내지 않습니다. AI 기능을 쓸 때만 요약 숫자가 Anthropic API로 전송되며, 전송 내용은 버튼 옆에서 미리 볼 수 있습니다.</p></details>
-        <details class="faq"><summary>수수료 예시 값은 믿어도 되나요?</summary><p>아닙니다. 모든 예시 수수료는 계산 흐름을 보여주기 위한 값이며 공식 요율이 아닙니다(기준일 2026-11, 확인 필요). 각 채널의 최신 정책을 확인해 채널 수수료 표에서 직접 수정하세요.</p></details>
+        <div class="faq">
+          <details><summary data-i18n="ix.q1">부가세는 어떻게 계산하나요?</summary><p data-i18n="ix.a1">부가세 분리를 켜면 판매가에서 10%를 역산해 뺀 금액을 매출로 봅니다. 이 10%는 일반과세 기준 가정이며 확인 필요 항목입니다. 원가와 포장비는 부가세를 뺀 금액으로 입력한다고 가정합니다. 면세 또는 간이과세 사업자라면 부가세 분리를 끄세요.</p></details>
+          <details><summary data-i18n="ix.q2">손익분기 ROAS는 무엇인가요?</summary><p data-i18n="ix.a2">할인 후 판매가를 광고 전 순이익으로 나눈 값입니다. 주문 한 건당 쓸 수 있는 최대 광고비(손익분기 광고비)를 ROAS로 바꾼 것이라서, 실제 ROAS가 이 값보다 낮으면 광고비가 이익을 넘어섭니다.</p></details>
+          <details><summary data-i18n="ix.q3">반품률은 어떻게 반영되나요?</summary><p data-i18n="ix.a3">반품된 주문은 매출이 환불되고, 원가는 재입고된다고 봅니다. 수수료와 포장·배송비는 돌려받지 못한다고 보며, 반품 1건당 추가 손실(회수·폐기 등)을 따로 더합니다. 기대 순마진은 반품률만큼 가중 평균합니다.</p></details>
+          <details><summary data-i18n="ix.q4">시나리오 설정은 어디에 저장되나요?</summary><p data-i18n="ix.a4">프로모 할인율과 광고 강화 배율은 이 브라우저에 저장되어 다음 방문에도 유지됩니다. 백업 JSON에도 함께 들어갑니다. 값은 0~50%와 1~10배 범위에서만 받습니다.</p></details>
+          <details><summary data-i18n="ix.q5">내 데이터는 어디에 저장되나요?</summary><p data-i18n="ix.a5">이 브라우저의 localStorage에만 저장되며 서버로 보내지 않습니다. AI 기능을 쓸 때만 요약 숫자가 Anthropic API로 전송되며, 전송 내용은 버튼 옆에서 미리 볼 수 있습니다.</p></details>
+          <details><summary data-i18n="ix.q6">수수료 예시 값은 믿어도 되나요?</summary><p data-i18n="ix.a6">아닙니다. 모든 예시 수수료는 계산 흐름을 보여주기 위한 값이며 공식 요율이 아닙니다(기준일 2026-11, 확인 필요). 각 채널의 최신 정책을 확인해 채널 수수료 표에서 직접 수정하세요.</p></details>
+        </div>
       </div>
     </section>
   </main>
@@ -447,14 +431,14 @@
   <footer class="footer">
     <div class="wrap footer-grid">
       <div>
-        <p class="brand-line">셀러마진</p>
-        <p class="small">상품별 순마진과 광고 손익분기를 계산하는 도구입니다.</p>
+        <p class="brand-line" data-i18n="ix.brand">셀러마진</p>
+        <p class="small" data-i18n="ix.footBrand">상품별 순마진과 광고 손익분기를 계산하는 도구입니다.</p>
       </div>
       <div>
-        <p class="small"><strong>데이터는 이 브라우저에만 저장됩니다.</strong> 서버로 전송하지 않습니다 (AI 분석 버튼을 누른 경우 제외).</p>
-        <p class="small">면책: 계산 결과는 참고용 추정치이며 세무·법률·재무 자문이 아닙니다. 수수료·세율 기준일과 적용 값은 README와 화면에 표시된 기준을 확인하세요.</p>
+        <p class="small"><strong data-i18n="ix.footPrivacy">데이터는 이 브라우저에만 저장됩니다.</strong> <span data-i18n="ix.footPrivacy2">서버로 전송하지 않습니다 (AI 분석 버튼을 누른 경우 제외).</span></p>
+        <p class="small" data-i18n="ix.footDisclaimer">면책: 계산 결과는 참고용 추정치이며 세무·법률·재무 자문이 아닙니다. 수수료·세율 기준일과 적용 값은 README와 화면에 표시된 기준을 확인하세요.</p>
       </div>
-      <p class="small copy">© 2026 셀러마진. All rights reserved.</p>
+      <p class="small copy" data-i18n="ix.copy">© 2026 셀러마진. All rights reserved.</p>
     </div>
   </footer>
 
