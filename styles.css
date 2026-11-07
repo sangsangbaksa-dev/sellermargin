@@ -383,3 +383,6 @@ table.data input[type="text"] { min-width: 110px; }
 .subpanel .field { max-width: 360px; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+/* 2차 정리: 체크박스와 건너뛰기 링크도 44px 탭 영역을 갖춤 */
+label:has(> input[type="checkbox"]), label:has(> input[type="radio"]), label.radio, label.check { min-height: 44px; display: inline-flex; align-items: center; gap: 0.5rem; }
+.skip, .skip-link, a.skip { min-height: 44px; display: inline-flex; align-items: center; }
