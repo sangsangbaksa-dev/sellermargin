@@ -7,6 +7,8 @@ import {
   validateState, importStateJson, exportStateJson, defaultState,
   checkKeyFormat, buildAdvicePrompt, parseAdviceReply, ruleBasedAdvice,
   HEALTH,
+  validateScenarioSettings, computeScenarios, SCENARIO_DEFAULTS, sensitivityGrid, SENS_ROAS_LEVELS,
+  monthlyPnlByChannel, breakEvenChartModel, errorReportCsv,
 } from '../logic.js';
 
 // 재현 가능한 난수 (mulberry32)
@@ -401,5 +403,140 @@ describe('AI 패널 순수 로직', () => {
     const result = computeProduct({ ...base, adPerOrder: 0 }, SMART, { targetMargin: 5 });
     const advice = ruleBasedAdvice([{ label: '상품 A', product: { ...base, adPerOrder: 0 }, channel: SMART, result }], 5);
     assert.equal(advice.actions.length, 0);
+  });
+});
+
+describe('시나리오 비교 (기준 · 프로모 · 광고 강화)', () => {
+  test('설정 검증: 기본값, 할인 0~50, 배율 1~10, 잘못된 값은 오류', () => {
+    const ok = validateScenarioSettings({});
+    assert.equal(ok.ok, true);
+    assert.deepEqual(ok.value, SCENARIO_DEFAULTS);
+    assert.equal(validateScenarioSettings({ promoDiscount: '51' }).ok, false);
+    assert.equal(validateScenarioSettings({ promoDiscount: '-1' }).ok, false);
+    assert.equal(validateScenarioSettings({ adMultiplier: '0.5' }).ok, false);
+    assert.equal(validateScenarioSettings({ adMultiplier: '11' }).ok, false);
+    const x = validateScenarioSettings({ adMultiplier: '1.5x' });
+    assert.equal(x.ok, true);
+    assert.equal(x.value.adMultiplier, 1.5);
+  });
+
+  test('세 시나리오: 기준은 입력값 그대로, 프로모는 할인만, 광고 강화는 광고비만 배율 적용', () => {
+    const p = { ...base, adPerOrder: 1000 };
+    const [b, promo, ad] = computeScenarios(p, SMART, { targetMargin: 15, promoDiscount: 10, adMultiplier: 2 });
+    assert.equal(b.key, 'base');
+    assert.equal(b.result.net, computeProduct(p, SMART, { targetMargin: 15 }).net);
+    assert.equal(promo.result.effectivePrice, 9000);
+    assert.equal(promo.result.adPerOrder, 1000);
+    assert.equal(ad.result.adPerOrder, 2000);
+    assert.equal(ad.result.expectedPreAd, b.result.expectedPreAd);
+    assert.equal(ad.result.net, b.result.net - 1000);
+  });
+
+  test('ROAS 모드에서 광고 강화는 배율이 광고비에 반영된다', () => {
+    const p = { ...base, adMode: 'roas', roasTarget: 4, adPerOrder: 0 };
+    const [b, , ad] = computeScenarios(p, SMART, { adMultiplier: 3 });
+    assert.equal(b.result.adPerOrder, 2500);
+    assert.equal(ad.result.adPerOrder, 7500);
+  });
+});
+
+describe('민감도 표 (판매가 × ROAS)', () => {
+  test('기본 판매가 격자는 0.8~1.2배, 10원 단위, 오름차순', () => {
+    const g = sensitivityGrid({ ...base, price: 10000 }, SMART, { targetMargin: 15 });
+    assert.deepEqual(g.prices, [8000, 9000, 10000, 11000, 12000]);
+    assert.deepEqual(g.roasLevels, [...SENS_ROAS_LEVELS]);
+    assert.equal(g.cells.length, 5);
+    assert.equal(g.cells[0].length, SENS_ROAS_LEVELS.length);
+  });
+
+  test('각 셀은 해당 판매가·광고비(판매가/ROAS)로 계산한 순마진과 일치', () => {
+    const p = { ...base, price: 10000, cogs: 3000, adPerOrder: 0 };
+    const g = sensitivityGrid(p, SMART, { prices: [10000], roasLevels: [4] });
+    const cell = g.cells[0][0];
+    assert.equal(cell.adPerOrder, 2500);
+    const ref = computeProduct(p, SMART, { price: 10000, discountRate: 0, coupon: 0, adPerOrder: 2500 });
+    assert.equal(cell.net, ref.net);
+    assert.equal(cell.marginRate, ref.marginRate);
+  });
+
+  test('ROAS가 높을수록(광고비가 적을수록) 순마진은 같거나 커진다', () => {
+    const g = sensitivityGrid({ ...base, price: 20000, cogs: 5000 }, SMART, { prices: [20000], roasLevels: [2, 3, 4, 5, 6] });
+    const nets = g.cells[0].map((c) => c.net);
+    for (let i = 1; i < nets.length; i += 1) assert.ok(nets[i] >= nets[i - 1]);
+  });
+});
+
+describe('채널별 월 손익', () => {
+  test('항등식: 매출 − 원가 − 포장·배송 − 수수료 − 반품 손실 − 광고비 = 순이익 (채널 합계까지 오차 없음)', () => {
+    const products = [
+      { ...base, id: 'a', volume: 120, returnRate: 7.5, returnLoss: 1800, adPerOrder: 1700 },
+      { ...base, id: 'b', volume: 33, channelId: 'etsy', price: 23000, returnRate: 12, returnLoss: 3000, adMode: 'roas', roasTarget: 3, adPerOrder: 0 },
+    ];
+    const rows = products.map((p) => ({ product: p, channel: p.channelId === 'etsy' ? NO_VAT : SMART, result: computeProduct(p, p.channelId === 'etsy' ? NO_VAT : SMART, { targetMargin: 15 }) }));
+    const pnl = monthlyPnlByChannel(rows, [SMART, NO_VAT]);
+    for (const r of [...pnl.channels, pnl.total]) {
+      assert.equal(r.revenue - r.cogs - r.handling - r.fees - r.returnDrag - r.ad, r.net, `${r.name} 항등식`);
+    }
+    assert.equal(pnl.total.net, pnl.channels.reduce((acc, r) => acc + r.net, 0));
+    assert.equal(pnl.total.volume, 153);
+  });
+
+  test('판매 상품이 없는 채널은 제외하고, 매출 0이면 마진율 null', () => {
+    const p = { ...base, volume: 0 };
+    const rows = [{ product: p, channel: SMART, result: computeProduct(p, SMART) }];
+    const pnl = monthlyPnlByChannel(rows, [SMART, NO_VAT]);
+    assert.equal(pnl.channels.length, 1);
+    assert.equal(pnl.channels[0].channelId, 'smartstore');
+    assert.equal(pnl.channels[0].marginRate, null);
+    assert.equal(pnl.total.marginRate, null);
+  });
+});
+
+describe('손익분기 차트 모델', () => {
+  test('직선 양 끝점과 손익분기 광고비, 현재 광고비 위치', () => {
+    const p = { ...base, adPerOrder: 1000, cogs: 2000 };
+    const r = computeProduct(p, SMART);
+    const m = breakEvenChartModel(r, 1000);
+    assert.equal(m.line.x1, 0);
+    assert.equal(m.line.y1, r.expectedPreAd);
+    assert.equal(m.line.y2, r.expectedPreAd - m.xMax);
+    assert.deepEqual(m.bep, { x: r.expectedPreAd, y: 0 });
+    assert.equal(m.current.x, 1000);
+    assert.equal(m.current.y, r.expectedPreAd - 1000);
+    assert.ok(m.xMax >= r.expectedPreAd && m.xMax >= 1000);
+    assert.equal(m.xTicks.length, 5);
+    assert.equal(m.xTicks[0], 0);
+    assert.equal(m.xTicks[4], m.xMax);
+    assert.ok(m.yMin <= 0 && m.yMax >= 0);
+  });
+
+  test('광고 전 적자면 손익분기 점은 없고 y 범위가 음수까지 내려간다', () => {
+    const p = { ...base, price: 3000, cogs: 5000, adPerOrder: 0 };
+    const r = computeProduct(p, SMART);
+    assert.ok(r.expectedPreAd < 0);
+    const m = breakEvenChartModel(r, 0);
+    assert.equal(m.bep, null);
+    assert.ok(m.yMin < r.expectedPreAd);
+    assert.equal(m.yMax, 0);
+  });
+});
+
+describe('오류 보고서 CSV', () => {
+  test('행 번호와 오류 내용을 CSV로 내보내고 수식 주입을 막는다', () => {
+    const text = errorReportCsv([{ line: 3, message: '판매가은(는) 정수 원 단위 숫자여야 합니다' }, { line: 4, message: '=HYPERLINK("x")' }]);
+    assert.ok(text.startsWith('\uFEFF줄,오류 내용\r\n'));
+    assert.match(text, /3,판매가/);
+    assert.match(text, /4,"'=HYPERLINK/);
+  });
+});
+
+describe('백업: 시나리오 설정 왕복', () => {
+  test('시나리오 설정은 저장·복원되고 잘못된 값은 기본값으로 돌아간다', () => {
+    const st = defaultState();
+    st.settings.scenarios = { promoDiscount: 20, adMultiplier: 1.5 };
+    const round = importStateJson(exportStateJson(st));
+    assert.deepEqual(round.state.settings.scenarios, { promoDiscount: 20, adMultiplier: 1.5 });
+    const bad = validateState({ ...defaultState(), settings: { targetMargin: 15, scenarios: { promoDiscount: 999, adMultiplier: 'x' } } });
+    assert.deepEqual(bad.state.settings.scenarios, SCENARIO_DEFAULTS);
   });
 });

@@ -17,7 +17,8 @@ export const CONSTANTS = Object.freeze({
   MAX_VOLUME: 1000000,
   MAX_TEXT: 80,
   MAX_PRODUCTS: 2000,
-  PRESET_LABEL: '예시 수수료 · 직접 확인 필요 · 기준일 2026-11',
+  PRESET_LABEL: '예시 수수료 · 확인 필요 · 기준일 2026-11 (공식 요율 아님)',
+  VAT_LABEL: '부가세 10% 가정 · 확인 필요',
   CHANNEL_PRESETS: Object.freeze([
     { id: 'smartstore', name: '스마트스토어', saleFeeRate: 5.5, pgFeeRate: 3.5, fixedFee: 0, vatSeparate: true },
     { id: 'coupang', name: '쿠팡 마켓플레이스', saleFeeRate: 10.8, pgFeeRate: 0, fixedFee: 0, vatSeparate: true },
@@ -500,7 +501,7 @@ export const STATE_VERSION = 1;
 export function defaultState() {
   return {
     version: STATE_VERSION,
-    settings: { targetMargin: CONSTANTS.DEFAULT_TARGET_MARGIN },
+    settings: { targetMargin: CONSTANTS.DEFAULT_TARGET_MARGIN, scenarios: { ...SCENARIO_DEFAULTS } },
     channels: CONSTANTS.CHANNEL_PRESETS.map((c) => ({ ...c, source: 'preset' })),
     products: [],
   };
@@ -530,11 +531,12 @@ export function validateState(obj) {
     if (res.ok) products.push(res.product); else droppedProducts += 1;
   }
   const tm = validateTargetMargin(obj.settings?.targetMargin ?? CONSTANTS.DEFAULT_TARGET_MARGIN);
+  const sc = validateScenarioSettings(obj.settings?.scenarios ?? {});
   return {
     ok: true,
     state: {
       version: STATE_VERSION,
-      settings: { targetMargin: tm.ok ? tm.value : CONSTANTS.DEFAULT_TARGET_MARGIN },
+      settings: { targetMargin: tm.ok ? tm.value : CONSTANTS.DEFAULT_TARGET_MARGIN, scenarios: sc.value },
       channels,
       products: products.slice(0, CONSTANTS.MAX_PRODUCTS),
     },
@@ -554,6 +556,137 @@ export function importStateJson(text) {
     return { ok: false, error: 'JSON 형식이 올바르지 않습니다' };
   }
   return validateState(obj);
+}
+
+/* ------------------------------------------------------------------ *
+ * 시나리오 비교 (기준 · 프로모 · 광고 강화)
+ * ------------------------------------------------------------------ */
+
+export const SCENARIO_DEFAULTS = Object.freeze({ promoDiscount: 10, adMultiplier: 2 });
+const MULT_RE = /^\d+(\.\d{1,2})?$/;
+
+/** 시나리오 설정 검증. 프로모 할인율 0~50, 광고 배율 1~10. 잘못된 값은 기본값으로 되돌리고 오류를 알려 준다. */
+export function validateScenarioSettings(input = {}) {
+  const errors = {};
+  const out = { ...SCENARIO_DEFAULTS };
+  const promo = input.promoDiscount === undefined || input.promoDiscount === '' ? { ok: true, value: SCENARIO_DEFAULTS.promoDiscount } : parseRate(input.promoDiscount, { field: '프로모 할인율' });
+  if (!promo.ok) errors.promoDiscount = promo.error;
+  else if (promo.value > 50) errors.promoDiscount = '프로모 할인율은 0~50% 범위여야 합니다';
+  else out.promoDiscount = promo.value;
+
+  const rawMult = input.adMultiplier === undefined || input.adMultiplier === '' ? SCENARIO_DEFAULTS.adMultiplier : input.adMultiplier;
+  const s = String(rawMult).trim().replace(/x$/i, '');
+  if (!MULT_RE.test(s)) errors.adMultiplier = '광고 배율은 숫자(소수 둘째 자리까지)여야 합니다 (예: 2)';
+  else if (Number(s) < 1 || Number(s) > 10) errors.adMultiplier = '광고 배율은 1~10 범위여야 합니다';
+  else out.adMultiplier = Number(s);
+  return { ok: Object.keys(errors).length === 0, value: out, errors };
+}
+
+/**
+ * 같은 상품을 세 가지 시나리오로 계산한다.
+ *  - 기준: 입력값 그대로
+ *  - 프로모: 할인율만 적용 (쿠폰 없음)
+ *  - 광고 강화: 주문당 광고비에 배율 적용 (광고 전 이익은 그대로)
+ */
+export function computeScenarios(p, channel, { targetMargin = CONSTANTS.DEFAULT_TARGET_MARGIN, promoDiscount = SCENARIO_DEFAULTS.promoDiscount, adMultiplier = SCENARIO_DEFAULTS.adMultiplier } = {}) {
+  const base = computeProduct(p, channel, { targetMargin });
+  const promo = computeProduct(p, channel, { targetMargin, discountRate: promoDiscount });
+  const adHeavy = computeProduct(p, channel, { targetMargin, adPerOrder: rnd(base.adPerOrder * adMultiplier) });
+  return [
+    { key: 'base', label: '기준', detail: '입력값 그대로', result: base },
+    { key: 'promo', label: '프로모', detail: `할인 ${promoDiscount}%`, result: promo },
+    { key: 'adHeavy', label: '광고 강화', detail: `주문당 광고비 ×${adMultiplier}`, result: adHeavy },
+  ];
+}
+
+/* ------------------------------------------------------------------ *
+ * 민감도 표 (판매가 × 목표 ROAS)
+ * ------------------------------------------------------------------ *
+ * 셀 = 해당 판매가에서 광고비를 판매가 / ROAS 로 두었을 때의 순마진과 마진율.
+ * 할인·쿠폰은 적용하지 않는다 (판매가 자체의 영향만 보기 위해).
+ */
+export const SENS_PRICE_FACTORS = Object.freeze([0.8, 0.9, 1, 1.1, 1.2]);
+export const SENS_ROAS_LEVELS = Object.freeze([2, 3, 4, 5, 6]);
+
+export function sensitivityGrid(p, channel, { targetMargin = CONSTANTS.DEFAULT_TARGET_MARGIN, basePrice = p.price, roasLevels = SENS_ROAS_LEVELS, prices } = {}) {
+  const priceList = prices ?? [...new Set(SENS_PRICE_FACTORS.map((f) => Math.max(10, Math.round((basePrice * f) / 10) * 10)))].sort((a, b) => a - b);
+  const cells = priceList.map((price) => roasLevels.map((roas) => {
+    const adPerOrder = rnd(price / roas);
+    const r = computeProduct(p, channel, { targetMargin, price, discountRate: 0, coupon: 0, adPerOrder });
+    return { price, roas, adPerOrder, net: r.net, marginRate: r.marginRate, health: r.health };
+  }));
+  return { prices: priceList, roasLevels: [...roasLevels], cells };
+}
+
+/* ------------------------------------------------------------------ *
+ * 채널별 월 손익 요약
+ * ------------------------------------------------------------------ *
+ * 상품 1개당 금액 × 월 판매량을 채널별로 합산한다.
+ * 항등식: 매출 − 원가 − 포장·배송 − 수수료 − 반품 기대 손실 − 광고비 = 순이익 (정수 원, 오차 없음).
+ */
+export function monthlyPnlByChannel(rows, channels = []) {
+  const map = new Map();
+  const blank = (id, name) => ({ channelId: id, name, count: 0, volume: 0, revenue: 0, cogs: 0, handling: 0, fees: 0, returnDrag: 0, ad: 0, net: 0, marginRate: null });
+  for (const c of channels) map.set(c.id, blank(c.id, c.name));
+  for (const { product, channel, result } of rows) {
+    if (!map.has(channel.id)) map.set(channel.id, blank(channel.id, channel.name));
+    const row = map.get(channel.id);
+    const v = product.volume || 0;
+    row.count += 1;
+    row.volume += v;
+    row.revenue += result.netRevenue * v;
+    row.cogs += result.cogs * v;
+    row.handling += result.handling * v;
+    row.fees += result.fees * v;
+    row.returnDrag += result.returnDrag * v;
+    row.ad += result.adPerOrder * v;
+    row.net += result.net * v;
+  }
+  const finish = (r) => ({ ...r, marginRate: r.revenue > 0 ? (r.net / r.revenue) * 100 : null });
+  const list = [...map.values()].filter((r) => r.count > 0).map(finish);
+  const sum = (k) => list.reduce((acc, r) => acc + r[k], 0);
+  const total = finish({
+    channelId: '__total', name: '합계', count: sum('count'), volume: sum('volume'), revenue: sum('revenue'), cogs: sum('cogs'),
+    handling: sum('handling'), fees: sum('fees'), returnDrag: sum('returnDrag'), ad: sum('ad'), net: sum('net'),
+  });
+  return { channels: list, total };
+}
+
+/* ------------------------------------------------------------------ *
+ * 손익분기 차트 모델 (SVG 그리기는 app.js 에서)
+ * ------------------------------------------------------------------ *
+ * 주문당 광고비 x 에 대한 순마진 = 광고 전 이익 − x (직선).
+ * 반환값은 데이터 좌표이며 화면 좌표 변환은 호출하는 쪽이 한다.
+ */
+function niceCeil(v) {
+  if (!(v > 0)) return 1000;
+  const m = 10 ** Math.floor(Math.log10(v));
+  return Math.ceil(v / m) * m;
+}
+
+export function breakEvenChartModel(result, currentAd = 0) {
+  const E = result.expectedPreAd;
+  const xMax = niceCeil(Math.max(Math.abs(E), currentAd, 1000) * 1.2);
+  const yMax = Math.max(E, 0);
+  const yMin = Math.min(0, E - xMax);
+  const ticks = (max, n = 4) => Array.from({ length: n + 1 }, (_, i) => Math.round((max * i) / n));
+  return {
+    xMax,
+    yMin,
+    yMax,
+    line: { x1: 0, y1: E, x2: xMax, y2: E - xMax },
+    bep: E > 0 ? { x: E, y: 0 } : null,
+    current: { x: currentAd, y: E - currentAd },
+    xTicks: ticks(xMax),
+    yTicks: ticks(yMax - yMin).map((t) => Math.round(yMin + t)),
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 오류 보고서 CSV (CSV 가져오기 행별 오류를 내려받을 때)
+ * ------------------------------------------------------------------ */
+export function errorReportCsv(errors) {
+  return toCsv(['줄', '오류 내용'], (errors || []).map((e) => [e.line || '', e.message]));
 }
 
 /* ------------------------------------------------------------------ *
