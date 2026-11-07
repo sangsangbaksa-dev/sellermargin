@@ -6,7 +6,7 @@ import {
   defaultState, importStateJson, exportStateJson, newId, validateTargetMargin,
   checkKeyFormat, buildAdvicePrompt, parseAdviceReply, ruleBasedAdvice,
   computeScenarios, validateScenarioSettings, sensitivityGrid, SENS_ROAS_LEVELS, monthlyPnlByChannel,
-  breakEvenChartModel, errorReportCsv,
+  breakEvenChartModel, errorReportCsv, parseMoney, targetProfitRows,
 } from './logic.js';
 
 const STORAGE_KEY = 'sellermargin-state';
@@ -462,7 +462,9 @@ function breakEvenSvg(r, currentAd) {
 
 /* 채널별 월 손익 */
 function renderPnl() {
-  const pnl = monthlyPnlByChannel(computeRows(), state.channels);
+  const rows = computeRows();
+  const pnl = monthlyPnlByChannel(rows, state.channels);
+  renderTargetProfit(rows);
   const has = pnl.channels.length > 0;
   $('pnl-empty').hidden = has;
   $('pnl-wrap').hidden = !has;
@@ -481,6 +483,27 @@ function renderPnl() {
     el('td', { class: 'num', text: pct(r.marginRate) }),
   );
   $('pnl-body').replaceChildren(...pnl.channels.map((r) => line(r, false)), line(pnl.total, true));
+}
+
+// 목표 순이익 입력을 검사하고 상품×채널별 필요 판매량을 표로 보여줍니다.
+function renderTargetProfit(rows) {
+  const parsed = parseMoney($('tp-target').value, { min: 0, field: '월 목표 순이익' });
+  $('tp-err').textContent = parsed.ok ? '' : parsed.error;
+  const body = $('tp-body');
+  body.replaceChildren();
+  $('tp-wrap').hidden = !parsed.ok || rows.length === 0;
+  $('tp-empty').hidden = rows.length > 0;
+  if (!parsed.ok || rows.length === 0) return;
+  for (const r of targetProfitRows(rows, parsed.value)) {
+    const need = r.ok ? `${r.volume.toLocaleString('ko-KR')}개` : (r.reason === 'NO_PROFIT' ? '불가 (순이익 0 이하)' : '-');
+    body.append(el('tr', {},
+      el('th', { scope: 'row', text: r.productName }),
+      el('td', { text: r.channelName }),
+      el('td', { class: cls('num', r.perOrder !== null && r.perOrder < 0 && 'neg'), text: r.perOrder === null ? '-' : won(r.perOrder) }),
+      el('td', { class: 'num', text: need }),
+      el('td', { class: 'num', text: `${r.currentVolume.toLocaleString('ko-KR')}개` }),
+    ));
+  }
 }
 
 function updateWhatIf(p, ch) {
@@ -984,6 +1007,7 @@ function bind() {
     else { ui.sort.key = key; ui.sort.dir = key === 'name' ? 'asc' : 'desc'; }
     renderProducts();
   }));
+  $('tp-target').addEventListener('input', () => renderPnl());
   $('filter-text').addEventListener('input', renderProducts);
   $('filter-loss').addEventListener('change', renderProducts);
   $('btn-detail-close').addEventListener('click', () => { ui.selectedId = null; renderAll(); });

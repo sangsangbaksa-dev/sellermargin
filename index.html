@@ -301,6 +301,26 @@
               <tbody id="pnl-body"></tbody>
             </table>
           </div>
+
+          <div class="subpanel" id="target-profit">
+            <h4>목표 이익 달성 판매량</h4>
+            <p class="basis">월 목표 순이익을 입력하면, 상품과 채널마다 주문 1건당 순이익으로 나눈 필요 판매 건수를 보여줍니다. 할인, 광고비, 반품 가정은 현재 값을 그대로 씁니다.</p>
+            <label class="field">월 목표 순이익 (원)
+              <input id="tp-target" inputmode="numeric" autocomplete="off" value="1000000" aria-describedby="tp-err">
+            </label>
+            <p class="field-error" id="tp-err" role="alert"></p>
+            <p class="empty" id="tp-empty" hidden>계산할 상품이 없습니다.</p>
+            <div class="table-wrap" id="tp-wrap" tabindex="0" role="region" aria-label="목표 이익 달성 판매량 표">
+              <table class="data" id="tp-table">
+                <caption class="sr-only">상품과 채널별 목표 이익 달성에 필요한 월 판매 건수</caption>
+                <thead><tr>
+                  <th scope="col">상품</th><th scope="col">채널</th><th scope="col" class="num">주문당 순이익</th>
+                  <th scope="col" class="num">필요 판매량</th><th scope="col" class="num">현재 월 판매량</th>
+                </tr></thead>
+                <tbody id="tp-body"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <div class="panel" id="panel-channels" aria-labelledby="channels-title">

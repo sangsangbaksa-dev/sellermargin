@@ -653,6 +653,40 @@ export function monthlyPnlByChannel(rows, channels = []) {
 }
 
 /* ------------------------------------------------------------------ *
+ * 목표 이익 달성 판매량
+ * ------------------------------------------------------------------ *
+ * result.net 은 현재 가정(할인, 광고비, 반품 등)에서 주문 1건당 순이익이다.
+ * 월 목표 순이익을 주문당 순이익으로 나눠 필요한 판매 건수를 올림으로 구한다.
+ * 주문당 순이익이 0 이하이면 판매량을 늘려도 목표에 닿지 않으므로 불가능으로 표시한다.
+ */
+export function volumeForTargetProfit(result, monthlyTarget) {
+  if (!Number.isSafeInteger(monthlyTarget) || monthlyTarget < 0) return { ok: false, reason: 'INVALID', perOrder: null, volume: null };
+  if (!result || !Number.isFinite(result.net)) return { ok: false, reason: 'INVALID', perOrder: null, volume: null };
+  const perOrder = rnd(result.net);
+  if (monthlyTarget === 0) return { ok: true, reason: null, perOrder, volume: 0 };
+  if (perOrder <= 0) return { ok: false, reason: 'NO_PROFIT', perOrder, volume: null };
+  return { ok: true, reason: null, perOrder, volume: Math.ceil(monthlyTarget / perOrder) };
+}
+
+/**
+ * 상품×채널 행 목록에 필요 판매량을 붙인다. 달성 가능한 행을 필요 판매량 적은 순으로 먼저,
+ * 불가능한 행은 뒤에 둔다. 입력 rows는 { product, channel, result } 형태다.
+ */
+export function targetProfitRows(rows, monthlyTarget) {
+  const out = rows.map(({ product, channel, result }) => ({
+    productName: product.name,
+    channelName: channel.name,
+    currentVolume: product.volume || 0,
+    ...volumeForTargetProfit(result, monthlyTarget),
+  }));
+  return out.sort((a, b) => {
+    if (a.ok !== b.ok) return a.ok ? -1 : 1;
+    if (a.ok) return a.volume - b.volume || a.productName.localeCompare(b.productName, 'ko');
+    return a.productName.localeCompare(b.productName, 'ko');
+  });
+}
+
+/* ------------------------------------------------------------------ *
  * 손익분기 차트 모델 (SVG 그리기는 app.js 에서)
  * ------------------------------------------------------------------ *
  * 주문당 광고비 x 에 대한 순마진 = 광고 전 이익 − x (직선).

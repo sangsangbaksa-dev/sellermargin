@@ -376,3 +376,10 @@ table.data input[type="text"] { min-width: 110px; }
 @media (min-width: 1100px) {
   .hero-cta .btn { flex: 0 0 auto; }
 }
+
+/* 2차 정리: 보조 패널 간격과 포커스 표시 */
+.subpanel { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line, var(--border, #E2E8F0)); }
+.subpanel h4 { margin: 0 0 6px; font-size: 16px; }
+.subpanel .field { max-width: 360px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+

@@ -542,3 +542,48 @@ describe('백업: 시나리오 설정 왕복', () => {
     assert.deepEqual(bad.state.settings.scenarios, SCENARIO_DEFAULTS);
   });
 });
+
+// 목표 이익 달성 판매량
+import { volumeForTargetProfit, targetProfitRows, parseMoney as parseMoneyForTarget } from '../logic.js';
+describe('목표 이익 달성 판매량', () => {
+  test('주문당 순이익으로 나눠 필요 판매량을 올림으로 구한다', () => {
+    assert.deepEqual(volumeForTargetProfit({ net: 1200 }, 1000000), { ok: true, reason: null, perOrder: 1200, volume: 834 });
+    assert.equal(volumeForTargetProfit({ net: 1000 }, 1000000).volume, 1000); // 딱 맞으면 올림 없음
+  });
+
+  test('목표가 0이면 판매량 0, 주문당 순이익이 0 이하이면 달성 불가', () => {
+    assert.equal(volumeForTargetProfit({ net: 500 }, 0).volume, 0);
+    const r = volumeForTargetProfit({ net: -300 }, 100000);
+    assert.equal(r.ok, false);
+    assert.equal(r.reason, 'NO_PROFIT');
+    assert.equal(volumeForTargetProfit({ net: 0 }, 100000).reason, 'NO_PROFIT');
+  });
+
+  test('잘못된 입력은 INVALID로 거부한다', () => {
+    assert.equal(volumeForTargetProfit({ net: 100 }, -1).reason, 'INVALID');
+    assert.equal(volumeForTargetProfit({ net: 100 }, 1.5).reason, 'INVALID');
+    assert.equal(volumeForTargetProfit({ net: NaN }, 1000).reason, 'INVALID');
+    assert.equal(volumeForTargetProfit(null, 1000).reason, 'INVALID');
+  });
+
+  test('행 목록은 달성 가능한 행을 필요 판매량 순으로 앞에 두고, 불가능한 행은 뒤에 둔다', () => {
+    const rows = [
+      { product: { name: '나', volume: 10 }, channel: { name: '채널A' }, result: { net: 500 } },
+      { product: { name: '가', volume: 0 }, channel: { name: '채널B' }, result: { net: -10 } },
+      { product: { name: '다', volume: 5 }, channel: { name: '채널C' }, result: { net: 2000 } },
+    ];
+    const out = targetProfitRows(rows, 100000);
+    assert.deepEqual(out.map((r) => [r.productName, r.ok, r.volume ?? null, r.currentVolume]), [
+      ['다', true, 50, 5],
+      ['나', true, 200, 10],
+      ['가', false, null, 0],
+    ]);
+  });
+
+  test('목표 순이익 입력은 parseMoney로 검사한다 (빈 값, 음수, 소수 거부)', () => {
+    assert.equal(parseMoneyForTarget('1,000,000').value, 1000000);
+    assert.equal(parseMoneyForTarget('').ok, false);
+    assert.equal(parseMoneyForTarget('-5').ok, false);
+    assert.equal(parseMoneyForTarget('12.5').ok, false);
+  });
+});
