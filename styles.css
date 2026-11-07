@@ -286,3 +286,34 @@ table.data tr.selected { background: color-mix(in srgb, var(--accent) 10%, trans
 /* 표 안의 입력칸 (채널 수수료 편집) */
 table.data input[type="text"] { min-width: 110px; }
 table.data td .row-actions { flex-wrap: nowrap; }
+
+/* 손익분기 차트, 시나리오, 민감도 표, 월 손익 */
+.chart-fig { margin: .5rem 0 1rem; }
+.chart-fig figcaption { margin-top: .4rem; }
+.be-chart { width: 100%; height: auto; }
+.be-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
+.be-zero { stroke: var(--muted); stroke-width: 1.2; }
+.be-line { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+.be-bep { fill: var(--surface); stroke: var(--text); stroke-width: 2; }
+.be-now { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.be-tick { font-size: 13px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.be-axis { font-size: 13px; fill: var(--muted); font-weight: 700; }
+.be-label { font-size: 14px; fill: var(--text); font-weight: 700; }
+.sub-block { margin: 1rem 0; }
+.sub-block h4 { margin-top: .25rem; }
+.scn-form { display: grid; gap: 12px; grid-template-columns: 1fr; margin-top: .75rem; }
+@media (min-width: 640px) { .scn-form { grid-template-columns: 1fr 1fr; } .scn-form .form-actions { grid-column: 1 / -1; } }
+.scenario-table th .sub { display: block; font-weight: 400; font-size: .8rem; }
+.sens-cell { line-height: 1.3; }
+.sens-cell .sens-margin { display: block; font-weight: 800; }
+.sens-cell .sens-net { display: block; font-size: .8rem; }
+.sens-cell.loss { background: var(--loss-bg); color: var(--loss-fg); }
+.sens-cell.risk { background: var(--risk-bg); color: var(--risk-fg); }
+.sens-cell.good { background: var(--good-bg); color: var(--good-fg); }
+.sens-cell.invalid { background: var(--invalid-bg); color: var(--invalid-fg); }
+table.data tr.total th, table.data tr.total td { font-weight: 800; border-top: 2px solid var(--text); }
+table.data th[scope="row"] { font-weight: 700; }
+/* 그리드 자식이 내용 폭만큼 넓어지지 않도록 (모바일 가로 넘침 방지) */
+.card-grid-2, .card-grid-2 > *, .form-grid, .form-grid > *, .card-grid, .card-grid > *, .metrics, .kpis, .footer-grid { min-width: 0; }
+.card-grid-2 { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .card-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -13,6 +13,7 @@
   <meta property="og:description" content="수수료·부가세·반품·광고비를 넣으면 상품별 진짜 마진과 광고비 한계를 보여줍니다.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23EA580C'/%3E%3Ctext x='16' y='23' font-size='19' font-weight='700' text-anchor='middle' fill='%231C1917' font-family='Georgia,serif'%3E%25%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
+  <script>try{var t=localStorage.getItem("sellermargin-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body>
   <a class="skip" href="#calc">계산기로 바로가기</a>
@@ -28,6 +29,7 @@
         <a href="#how">사용법</a>
         <a href="#faq">FAQ</a>
       </nav>
+      <button class="btn btn-ghost btn-sm" type="button" id="btn-theme">테마: 자동</button>
       <a class="btn btn-primary btn-sm" href="#calc">계산 시작</a>
     </div>
   </header>
@@ -191,11 +193,31 @@
           <div id="detail-body"></div>
         </div>
 
+        <div class="panel" id="panel-pnl" aria-labelledby="pnl-title">
+          <div class="panel-head">
+            <h3 id="pnl-title">월 손익 요약 (채널별)</h3>
+          </div>
+          <p class="basis">상품 1개당 금액 × 월 판매량을 채널별로 합산합니다. 월 판매량을 입력한 상품만 반영되며, 수수료는 예시 값이므로 확인 필요합니다.</p>
+          <p class="empty" id="pnl-empty" hidden>상품과 월 판매량을 입력하면 채널별 월 손익이 표시됩니다.</p>
+          <div class="table-wrap" id="pnl-wrap" tabindex="0">
+            <table class="data" id="pnl-table">
+              <caption class="sr-only">채널별 월 손익. 매출은 부가세 제외, 반품 손실은 기대값입니다.</caption>
+              <thead><tr>
+                <th scope="col">채널</th><th scope="col" class="num">상품 수</th><th scope="col" class="num">월 판매량</th>
+                <th scope="col" class="num">매출 (부가세 제외)</th><th scope="col" class="num">원가</th><th scope="col" class="num">포장·배송</th>
+                <th scope="col" class="num">수수료</th><th scope="col" class="num">반품 손실</th><th scope="col" class="num">광고비</th>
+                <th scope="col" class="num">월 순이익</th><th scope="col" class="num">마진율</th>
+              </tr></thead>
+              <tbody id="pnl-body"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="panel" id="panel-channels" aria-labelledby="channels-title">
           <div class="panel-head">
             <h3 id="channels-title">채널 수수료</h3>
           </div>
-          <p class="basis">예시 수수료 · 직접 확인 필요 · 기준일 2026-11 (공식 요율이 아닙니다)</p>
+          <p class="basis" id="channel-basis"></p>
           <div class="table-wrap" tabindex="0">
             <table class="data">
               <caption class="sr-only">채널별 수수료 설정. 값을 바꾸고 저장을 누르세요.</caption>
@@ -212,7 +234,7 @@
             <label class="field">판매 수수료 (%) <input id="cf-sale" inputmode="decimal" autocomplete="off"></label>
             <label class="field">결제/PG 수수료 (%) <input id="cf-pg" inputmode="decimal" autocomplete="off"></label>
             <label class="field">고정 수수료 (원/주문) <input id="cf-fixed" inputmode="numeric" autocomplete="off"></label>
-            <label class="check field-wide"><input type="checkbox" id="cf-vat" checked> 부가세 분리 (판매가에서 10% 부가세를 떼고 계산)</label>
+            <label class="check field-wide"><input type="checkbox" id="cf-vat" checked> 부가세 분리 (판매가에서 10%를 떼고 계산 · 확인 필요)</label>
             <div class="form-actions field-wide">
               <button class="btn btn-primary" type="submit">채널 추가</button>
               <button class="btn btn-ghost" type="button" id="btn-channel-reset">예시 수수료로 되돌리기</button>
@@ -238,6 +260,7 @@
               <input type="file" id="csv-file" accept=".csv,text/csv">
             </label>
             <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-preview">미리보기 검사</button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-errors" disabled>오류 목록 내려받기 (CSV)</button>
             <button class="btn btn-primary btn-sm" type="button" id="btn-csv-import" disabled>검사 통과 행 추가</button>
           </div>
           <p class="form-msg" id="csv-msg" role="status" aria-live="polite"></p>

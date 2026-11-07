@@ -5,6 +5,8 @@ import {
   solvePriceForMargin, compareChannels, summarize, sortRows, mapCsvProducts, toCsv,
   defaultState, importStateJson, exportStateJson, newId, validateTargetMargin,
   checkKeyFormat, buildAdvicePrompt, parseAdviceReply, ruleBasedAdvice,
+  computeScenarios, validateScenarioSettings, sensitivityGrid, SENS_ROAS_LEVELS, monthlyPnlByChannel,
+  breakEvenChartModel, errorReportCsv,
 } from './logic.js';
 
 const STORAGE_KEY = 'sellermargin-state';
@@ -128,11 +130,13 @@ function renderAll() {
   renderDetail();
   renderChannels();
   renderChannelSelect();
+  renderPnl();
   renderAiPayload();
 }
 
 function renderBasis() {
-  $('basis-line').textContent = `기준: 예시 수수료 기준일 ${CONSTANTS.AS_OF_DATE} (직접 확인 필요) · ${CONSTANTS.VAT_SOURCE} · 금액은 원 단위 정수로 반올림합니다.`;
+  $('basis-line').textContent = `기준: ${CONSTANTS.PRESET_LABEL} · ${CONSTANTS.VAT_LABEL} · 금액은 원 단위 정수로 반올림합니다.`;
+  $('channel-basis').textContent = `${CONSTANTS.PRESET_LABEL}. 공식 요율이 아니며, 채널 정책을 직접 확인해 수정하세요.`;
 }
 
 function renderSummary() {
@@ -315,13 +319,167 @@ function renderDetail() {
   );
 
   const body = $('detail-body');
+  const chart = el('figure', { class: 'chart-fig' },
+    breakEvenSvg(r, r.adPerOrder),
+    el('figcaption', { class: 'small', text: '가로축은 주문당 광고비, 세로축은 주문 1건의 순마진입니다. 직선이 0을 지나는 점이 손익분기 광고비입니다.' }),
+  );
   body.replaceChildren(
     el('p', {}, el('span', { class: 'ai-tag', text: `SKU ${p.sku || '없음'}` }), el('span', { class: 'ai-tag', text: ch.name }), el('span', { class: 'ai-tag', text: `월 판매량 ${p.volume.toLocaleString('ko-KR')}개` }), chip(r.health)),
     metrics,
-    el('div', { class: 'card-grid-2' }, breakdown, el('div', {}, el('h4', { text: '채널별 비교 (같은 상품, 같은 가격)' }), compareTable)),
+    el('div', { class: 'card-grid-2' }, breakdown, el('div', {}, el('h4', { text: '광고비에 따른 순마진 (손익분기 차트)' }), chart, el('h4', { text: '채널별 비교 (같은 상품, 같은 가격)' }), compareTable)),
+    scenarioBlock(p, ch, tm),
+    sensitivityBlock(p, ch, tm),
     whatif,
   );
   updateWhatIf(p, ch);
+}
+
+/* 시나리오: 기준 · 프로모 · 광고 강화를 나란히 보여 주고, 프로모·광고 배율 설정을 저장한다. */
+function scenarioBlock(p, ch, tm) {
+  const sc = state.settings.scenarios;
+  const results = computeScenarios(p, ch, { targetMargin: tm, promoDiscount: sc.promoDiscount, adMultiplier: sc.adMultiplier });
+  const promoIn = el('input', { id: 'scn-promo', type: 'text', inputmode: 'decimal', value: String(sc.promoDiscount), autocomplete: 'off' });
+  const multIn = el('input', { id: 'scn-mult', type: 'text', inputmode: 'decimal', value: String(sc.adMultiplier), autocomplete: 'off' });
+  const form = el('form', { id: 'scn-form', class: 'scn-form', novalidate: true, onsubmit: (e) => {
+    e.preventDefault();
+    const res = validateScenarioSettings({ promoDiscount: promoIn.value, adMultiplier: multIn.value });
+    if (!res.ok) {
+      const first = Object.values(res.errors)[0];
+      setMsg($('scn-msg'), `${first} (저장하지 않았습니다)`, 'bad');
+      return;
+    }
+    state.settings.scenarios = res.value;
+    persist(null, '');
+    setMsg($('scn-msg'), '시나리오 설정을 저장했습니다. 다음 방문에도 유지됩니다.', 'ok');
+  } },
+    el('label', { class: 'field', for: 'scn-promo' }, '프로모 할인율 (%)', promoIn),
+    el('label', { class: 'field', for: 'scn-mult' }, '광고 강화 배율 (×)', multIn),
+    el('div', { class: 'form-actions' },
+      el('button', { class: 'btn btn-ghost btn-sm', type: 'submit', text: '시나리오 저장' }),
+      el('p', { class: 'form-msg', id: 'scn-msg', role: 'status', 'aria-live': 'polite' }),
+    ),
+  );
+  const names = results.map((x) => x.label);
+  const line = (label, fn, cls2 = '') => el('tr', { class: cls2 }, el('th', { scope: 'row', text: label }),
+    results.map((x) => el('td', { class: cls('num', fn(x).cls), text: fn(x).text })));
+  const table = el('div', { class: 'table-wrap', tabindex: '0' },
+    el('table', { class: 'data scenario-table' },
+      el('caption', { class: 'sr-only', text: '시나리오 비교: 기준, 프로모, 광고 강화' }),
+      el('thead', {}, el('tr', {},
+        el('th', { scope: 'col', text: '지표' }),
+        results.map((x, i) => el('th', { scope: 'col', class: 'num' }, names[i], el('span', { class: 'sub', text: x.detail }))),
+      )),
+      el('tbody', {},
+        line('할인 후 판매가', (x) => ({ text: won(x.result.effectivePrice) })),
+        line('주문당 광고비', (x) => ({ text: won(x.result.adPerOrder) })),
+        line('순마진 (주문 1건)', (x) => ({ text: won(x.result.net), cls: x.result.net < 0 ? 'neg' : '' })),
+        line('마진율', (x) => ({ text: pct(x.result.marginRate) })),
+        line('손익분기 ROAS', (x) => ({ text: roasTxt(x.result.bepRoas) })),
+        line('상태', (x) => ({ text: HEALTH_LABEL[x.result.health] })),
+      ),
+    ),
+  );
+  return el('div', { class: 'sub-block', 'aria-labelledby': 'scn-title' },
+    el('h4', { id: 'scn-title', text: '시나리오 비교 (기준 · 프로모 · 광고 강화)' }),
+    el('p', { class: 'basis', text: '같은 상품을 세 조건으로 계산합니다. 프로모는 할인율만, 광고 강화는 주문당 광고비만 바꿉니다.' }),
+    table,
+    form,
+  );
+}
+
+/* 민감도 표: 판매가(기준의 0.8~1.2배) × 목표 ROAS. 셀에는 마진율과 순마진을 함께 적는다. */
+function sensitivityBlock(p, ch, tm) {
+  const grid = sensitivityGrid(p, ch, { targetMargin: tm, basePrice: p.price, roasLevels: SENS_ROAS_LEVELS });
+  const head = el('tr', {}, el('th', { scope: 'col', text: '판매가 \\ 목표 ROAS' }),
+    grid.roasLevels.map((roas) => el('th', { scope: 'col', class: 'num', text: `${roas}배` })));
+  const rows = grid.prices.map((price, i) => el('tr', { class: price === p.price ? 'selected' : '' },
+    el('th', { scope: 'row', class: 'num', text: won(price) + (price === p.price ? ' (현재)' : '') }),
+    grid.cells[i].map((c) => el('td', { class: cls('num sens-cell', c.health) },
+      el('span', { class: 'sens-margin', text: pct(c.marginRate) }),
+      el('span', { class: 'sens-net', text: `순마진 ${signedWon(c.net)}` }),
+    )),
+  ));
+  return el('div', { class: 'sub-block' },
+    el('h4', { text: '민감도 표: 판매가 × 목표 ROAS' }),
+    el('p', { class: 'basis', text: `광고비는 판매가 ÷ ROAS로 두고, 할인·쿠폰은 적용하지 않습니다. 색: 적자(빨강), 목표 미달(노랑), 양호(초록). 현재 판매가 ${won(p.price)} 행에 "(현재)"를 붙였습니다.` }),
+    el('div', { class: 'table-wrap', tabindex: '0' },
+      el('table', { class: 'data sens-table' },
+        el('caption', { class: 'sr-only', text: '판매가와 목표 ROAS에 따른 마진율과 순마진' }),
+        el('thead', {}, head),
+        el('tbody', {}, rows),
+      ),
+    ),
+  );
+}
+
+/* 손익분기 차트 (인라인 SVG). 색과 글자를 함께 쓰고, 값은 텍스트로도 적는다. */
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs = {}, ...kids) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === null || v === undefined || v === false) continue;
+    node.setAttribute(k, String(v));
+  }
+  for (const kid of kids.flat()) if (kid) node.append(kid);
+  return node;
+}
+function svgText(x, y, text, attrs = {}) {
+  const t = svgEl('text', { x, y, ...attrs });
+  t.textContent = text;
+  return t;
+}
+function breakEvenSvg(r, currentAd) {
+  const m = breakEvenChartModel(r, currentAd);
+  const W = 640, H = 300, L = 84, R = 28, T = 24, B = 52;
+  const iw = W - L - R, ih = H - T - B;
+  const span = m.yMax - m.yMin || 1;
+  const sx = (x) => L + (x / m.xMax) * iw;
+  const sy = (y) => T + ((m.yMax - y) / span) * ih;
+  const kids = [];
+  for (const t of m.yTicks) {
+    kids.push(svgEl('line', { x1: L, x2: W - R, y1: sy(t), y2: sy(t), class: t === 0 ? 'be-zero' : 'be-grid' }));
+    kids.push(svgText(L - 8, sy(t) + 4, `${t.toLocaleString('ko-KR')}`, { 'text-anchor': 'end', class: 'be-tick' }));
+  }
+  for (const t of m.xTicks) {
+    kids.push(svgText(sx(t), H - B + 20, `${t.toLocaleString('ko-KR')}`, { 'text-anchor': 'middle', class: 'be-tick' }));
+  }
+  kids.push(svgText(L + iw / 2, H - 8, '주문당 광고비 (원)', { 'text-anchor': 'middle', class: 'be-axis' }));
+  kids.push(svgText(16, T + ih / 2, '순마진 (원)', { 'text-anchor': 'middle', transform: `rotate(-90 16 ${T + ih / 2})`, class: 'be-axis' }));
+  kids.push(svgEl('line', { x1: sx(m.line.x1), y1: sy(m.line.y1), x2: sx(m.line.x2), y2: sy(m.line.y2), class: 'be-line' }));
+  if (m.bep) {
+    kids.push(svgEl('circle', { cx: sx(m.bep.x), cy: sy(m.bep.y), r: 6, class: 'be-bep' }));
+    const endAnchor = sx(m.bep.x) > W - 200 ? 'end' : 'start';
+    kids.push(svgText(sx(m.bep.x) + (endAnchor === 'start' ? 8 : -8), sy(0) - 10, `손익분기 ${won(Math.round(m.bep.x))}`, { 'text-anchor': endAnchor, class: 'be-label' }));
+  }
+  const cx = sx(m.current.x), cy = sy(m.current.y);
+  kids.push(svgEl('circle', { cx, cy, r: 6, class: 'be-now' }));
+  const nowAnchor = cx > W - 220 ? 'end' : 'start';
+  kids.push(svgText(cx + (nowAnchor === 'start' ? 10 : -10), cy - 10, `현재 ${won(Math.round(m.current.x))} → 순마진 ${signedWon(Math.round(m.current.y))}`, { 'text-anchor': nowAnchor, class: 'be-label' }));
+  const title = svgEl('title', {}, `주문당 광고비별 순마진. 손익분기 광고비 ${m.bep ? won(Math.round(m.bep.x)) : '없음(광고 전 적자)'}, 현재 광고비 ${won(Math.round(m.current.x))}`);
+  return svgEl('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', class: 'be-chart', 'aria-labelledby': 'be-title' }, svgEl('title', { id: 'be-title' }, title.textContent), kids);
+}
+
+/* 채널별 월 손익 */
+function renderPnl() {
+  const pnl = monthlyPnlByChannel(computeRows(), state.channels);
+  const has = pnl.channels.length > 0;
+  $('pnl-empty').hidden = has;
+  $('pnl-wrap').hidden = !has;
+  if (!has) { $('pnl-body').replaceChildren(); return; }
+  const line = (r, isTotal) => el('tr', { class: isTotal ? 'total' : '' },
+    el('th', { scope: 'row', text: r.name }),
+    el('td', { class: 'num', text: `${r.count}개` }),
+    el('td', { class: 'num', text: r.volume.toLocaleString('ko-KR') }),
+    el('td', { class: 'num', text: won(r.revenue) }),
+    el('td', { class: 'num', text: won(r.cogs) }),
+    el('td', { class: 'num', text: won(r.handling) }),
+    el('td', { class: 'num', text: won(r.fees) }),
+    el('td', { class: 'num', text: won(r.returnDrag) }),
+    el('td', { class: 'num', text: won(r.ad) }),
+    el('td', { class: cls('num', r.net < 0 && 'neg'), text: won(r.net) }),
+    el('td', { class: 'num', text: pct(r.marginRate) }),
+  );
+  $('pnl-body').replaceChildren(...pnl.channels.map((r) => line(r, false)), line(pnl.total, true));
 }
 
 function updateWhatIf(p, ch) {
@@ -615,12 +773,14 @@ function previewCsv() {
   if (!text.trim()) {
     ui.csv.parsed = null;
     $('btn-csv-import').disabled = true;
+    $('btn-csv-errors').disabled = true;
     setMsg(msg, 'CSV 내용을 붙여넣거나 파일을 선택하세요.', 'bad');
     $('csv-errors').replaceChildren();
     return;
   }
   const parsed = mapCsvProducts(text, state.channels);
   ui.csv.parsed = parsed;
+  $('btn-csv-errors').disabled = parsed.errors.length === 0;
   const room = CONSTANTS.MAX_PRODUCTS - state.products.length;
   const overflow = parsed.products.length > room;
   $('btn-csv-import').disabled = parsed.products.length === 0 || overflow;
@@ -845,7 +1005,13 @@ function bind() {
     state.channels = [...CONSTANTS.CHANNEL_PRESETS.map((c) => ({ ...c, source: 'preset' })), ...custom];
     persist($('cf-msg'), '예시 채널을 기본값으로 되돌렸습니다.');
   });
-  $('csv-text').addEventListener('input', () => { ui.csv.parsed = null; $('btn-csv-import').disabled = true; });
+  $('csv-text').addEventListener('input', () => { ui.csv.parsed = null; $('btn-csv-import').disabled = true; $('btn-csv-errors').disabled = true; });
+  $('btn-csv-errors').addEventListener('click', () => {
+    const errors = ui.csv.parsed?.errors ?? [];
+    if (!errors.length) return;
+    download(`sellermargin-csv-errors-${stamp()}.csv`, errorReportCsv(errors), 'text/csv;charset=utf-8');
+    setMsg($('csv-msg'), `오류 ${errors.length}건을 CSV로 내려받았습니다. 수정한 뒤 다시 검사하세요.`, 'ok');
+  });
   $('btn-csv-preview').addEventListener('click', previewCsv);
   $('btn-csv-import').addEventListener('click', importCsv);
   $('csv-file').addEventListener('change', (e) => {
@@ -882,8 +1048,27 @@ function bind() {
   });
 }
 
+const THEME_KEY = 'sellermargin-theme';
+const THEME_NEXT = { auto: 'light', light: 'dark', dark: 'auto' };
+const THEME_LABEL = { auto: '테마: 자동', light: '테마: 밝게', dark: '테마: 어둡게' };
+function readTheme() {
+  try { const t = localStorage.getItem(THEME_KEY); return t === 'light' || t === 'dark' ? t : 'auto'; } catch { return 'auto'; }
+}
+function applyTheme(mode) {
+  const root = document.documentElement;
+  if (mode === 'light' || mode === 'dark') root.dataset.theme = mode; else delete root.dataset.theme;
+  $('btn-theme').textContent = THEME_LABEL[mode];
+  $('btn-theme').setAttribute('aria-label', `화면 테마 변경 (현재: ${THEME_LABEL[mode].replace('테마: ', '')})`);
+}
+
 function init() {
   renderBasis();
+  applyTheme(readTheme());
+  $('btn-theme').addEventListener('click', () => {
+    const next = THEME_NEXT[readTheme()];
+    try { if (next === 'auto') localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next); } catch { /* 저장 불가 시 이번 화면에서만 적용 */ }
+    applyTheme(next);
+  });
   $('target-margin').value = String(state.settings.targetMargin);
   bind();
   renderAll();
